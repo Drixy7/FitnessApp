@@ -18,7 +18,12 @@ const WorkoutSchema = CollectionSchema(
   id: 1535508263686820971,
   properties: {
     r'date': PropertySchema(id: 0, name: r'date', type: IsarType.dateTime),
-    r'note': PropertySchema(id: 1, name: r'note', type: IsarType.string),
+    r'isSkipped': PropertySchema(
+      id: 1,
+      name: r'isSkipped',
+      type: IsarType.bool,
+    ),
+    r'note': PropertySchema(id: 2, name: r'note', type: IsarType.string),
   },
 
   estimateSize: _workoutEstimateSize,
@@ -38,7 +43,7 @@ const WorkoutSchema = CollectionSchema(
       id: -6164758355286937234,
       name: r'planDay',
       target: r'PlanDay',
-      single: false,
+      single: true,
     ),
   },
   embeddedSchemas: {},
@@ -71,7 +76,8 @@ void _workoutSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.date);
-  writer.writeString(offsets[1], object.note);
+  writer.writeBool(offsets[1], object.isSkipped);
+  writer.writeString(offsets[2], object.note);
 }
 
 Workout _workoutDeserialize(
@@ -83,7 +89,8 @@ Workout _workoutDeserialize(
   final object = Workout();
   object.date = reader.readDateTime(offsets[0]);
   object.id = id;
-  object.note = reader.readStringOrNull(offsets[1]);
+  object.isSkipped = reader.readBool(offsets[1]);
+  object.note = reader.readStringOrNull(offsets[2]);
   return object;
 }
 
@@ -97,6 +104,8 @@ P _workoutDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
+      return (reader.readBool(offset)) as P;
+    case 2:
       return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -309,6 +318,16 @@ extension WorkoutQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> isSkippedEqualTo(
+    bool value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isSkipped', value: value),
       );
     });
   }
@@ -552,56 +571,9 @@ extension WorkoutQueryLinks
     });
   }
 
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayLengthEqualTo(
-    int length,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'planDay', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayIsEmpty() {
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'planDay', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'planDay', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'planDay', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterFilterCondition>
-  planDayLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'planDay', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> planDayLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-        r'planDay',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
     });
   }
 }
@@ -616,6 +588,18 @@ extension WorkoutQuerySortBy on QueryBuilder<Workout, Workout, QSortBy> {
   QueryBuilder<Workout, Workout, QAfterSortBy> sortByDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByIsSkipped() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSkipped', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByIsSkippedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSkipped', Sort.desc);
     });
   }
 
@@ -658,6 +642,18 @@ extension WorkoutQuerySortThenBy
     });
   }
 
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByIsSkipped() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSkipped', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByIsSkippedDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isSkipped', Sort.desc);
+    });
+  }
+
   QueryBuilder<Workout, Workout, QAfterSortBy> thenByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
@@ -676,6 +672,12 @@ extension WorkoutQueryWhereDistinct
   QueryBuilder<Workout, Workout, QDistinct> distinctByDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'date');
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QDistinct> distinctByIsSkipped() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isSkipped');
     });
   }
 
@@ -699,6 +701,12 @@ extension WorkoutQueryProperty
   QueryBuilder<Workout, DateTime, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'date');
+    });
+  }
+
+  QueryBuilder<Workout, bool, QQueryOperations> isSkippedProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isSkipped');
     });
   }
 

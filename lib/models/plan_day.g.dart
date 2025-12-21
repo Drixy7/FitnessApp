@@ -23,14 +23,9 @@ const PlanDaySchema = CollectionSchema(
       name: r'description',
       type: IsarType.string,
     ),
-    r'isSkipped': PropertySchema(
-      id: 2,
-      name: r'isSkipped',
-      type: IsarType.bool,
-    ),
-    r'name': PropertySchema(id: 3, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
     r'weekNumber': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'weekNumber',
       type: IsarType.long,
     ),
@@ -47,7 +42,7 @@ const PlanDaySchema = CollectionSchema(
       id: 2400761834184479592,
       name: r'plan',
       target: r'Plan',
-      single: false,
+      single: true,
       linkName: r'days',
     ),
     r'exercises': LinkSchema(
@@ -89,9 +84,8 @@ void _planDaySerialize(
 ) {
   writer.writeLong(offsets[0], object.dayOrder);
   writer.writeString(offsets[1], object.description);
-  writer.writeBool(offsets[2], object.isSkipped);
-  writer.writeString(offsets[3], object.name);
-  writer.writeLong(offsets[4], object.weekNumber);
+  writer.writeString(offsets[2], object.name);
+  writer.writeLong(offsets[3], object.weekNumber);
 }
 
 PlanDay _planDayDeserialize(
@@ -104,9 +98,8 @@ PlanDay _planDayDeserialize(
   object.dayOrder = reader.readLong(offsets[0]);
   object.description = reader.readStringOrNull(offsets[1]);
   object.id = id;
-  object.isSkipped = reader.readBool(offsets[2]);
-  object.name = reader.readString(offsets[3]);
-  object.weekNumber = reader.readLong(offsets[4]);
+  object.name = reader.readString(offsets[2]);
+  object.weekNumber = reader.readLong(offsets[3]);
   return object;
 }
 
@@ -122,10 +115,8 @@ P _planDayDeserializeProp<P>(
     case 1:
       return (reader.readStringOrNull(offset)) as P;
     case 2:
-      return (reader.readBool(offset)) as P;
-    case 3:
       return (reader.readString(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -510,16 +501,6 @@ extension PlanDayQueryFilter
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> isSkippedEqualTo(
-    bool value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isSkipped', value: value),
-      );
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> nameEqualTo(
     String value, {
     bool caseSensitive = true,
@@ -739,58 +720,9 @@ extension PlanDayQueryLinks
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planLengthEqualTo(
-    int length,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'plan', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planIsEmpty() {
+  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'plan', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'plan', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'plan', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'plan', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> planLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-        r'plan',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
     });
   }
 
@@ -881,18 +813,6 @@ extension PlanDayQuerySortBy on QueryBuilder<PlanDay, PlanDay, QSortBy> {
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByIsSkippedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -956,18 +876,6 @@ extension PlanDayQuerySortThenBy
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByIsSkippedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -1009,12 +917,6 @@ extension PlanDayQueryWhereDistinct
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QDistinct> distinctByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isSkipped');
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QDistinct> distinctByName({
     bool caseSensitive = true,
   }) {
@@ -1047,12 +949,6 @@ extension PlanDayQueryProperty
   QueryBuilder<PlanDay, String?, QQueryOperations> descriptionProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'description');
-    });
-  }
-
-  QueryBuilder<PlanDay, bool, QQueryOperations> isSkippedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isSkipped');
     });
   }
 

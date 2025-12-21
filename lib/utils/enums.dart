@@ -1,4 +1,3 @@
-
 enum BodyPart {
   abs,
   back,
@@ -10,9 +9,17 @@ enum BodyPart {
   hamstrings,
   quads,
   calves,
+  forearms,
 }
-enum Difficulty {
-  hard,
-  intermediate,
-  easy
+
+enum Difficulty { beginner, intermediate, advanced }
+
+enum Rating {veryEasy, easy, neutral, hard, veryHard }
+
+enum RepRange {
+  lowRep, //0-5
+  strength, //6-8
+  hypertrophy, //8-12
+  extendedHypertrophy, //12-15
+  highRep, //15+
 }

@@ -38,11 +38,12 @@ const PlanSchema = CollectionSchema(
       type: IsarType.byte,
       enumMap: _PlandifficultyEnumValueMap,
     ),
-    r'isCustom': PropertySchema(id: 4, name: r'isCustom', type: IsarType.bool),
-    r'name': PropertySchema(id: 5, name: r'name', type: IsarType.string),
-    r'weeksCount': PropertySchema(
-      id: 6,
-      name: r'weeksCount',
+    r'isActive': PropertySchema(id: 4, name: r'isActive', type: IsarType.bool),
+    r'isCustom': PropertySchema(id: 5, name: r'isCustom', type: IsarType.bool),
+    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
+    r'weeksPerCycle': PropertySchema(
+      id: 7,
+      name: r'weeksPerCycle',
       type: IsarType.long,
     ),
   },
@@ -95,9 +96,10 @@ void _planSerialize(
   writer.writeLong(offsets[1], object.daysPerWeek);
   writer.writeString(offsets[2], object.description);
   writer.writeByte(offsets[3], object.difficulty.index);
-  writer.writeBool(offsets[4], object.isCustom);
-  writer.writeString(offsets[5], object.name);
-  writer.writeLong(offsets[6], object.weeksCount);
+  writer.writeBool(offsets[4], object.isActive);
+  writer.writeBool(offsets[5], object.isCustom);
+  writer.writeString(offsets[6], object.name);
+  writer.writeLong(offsets[7], object.weeksPerCycle);
 }
 
 Plan _planDeserialize(
@@ -112,11 +114,12 @@ Plan _planDeserialize(
   object.description = reader.readStringOrNull(offsets[2]);
   object.difficulty =
       _PlandifficultyValueEnumMap[reader.readByteOrNull(offsets[3])] ??
-      Difficulty.hard;
+      Difficulty.beginner;
   object.id = id;
-  object.isCustom = reader.readBool(offsets[4]);
-  object.name = reader.readString(offsets[5]);
-  object.weeksCount = reader.readLong(offsets[6]);
+  object.isActive = reader.readBool(offsets[4]);
+  object.isCustom = reader.readBool(offsets[5]);
+  object.name = reader.readString(offsets[6]);
+  object.weeksPerCycle = reader.readLong(offsets[7]);
   return object;
 }
 
@@ -135,24 +138,30 @@ P _planDeserializeProp<P>(
       return (reader.readStringOrNull(offset)) as P;
     case 3:
       return (_PlandifficultyValueEnumMap[reader.readByteOrNull(offset)] ??
-              Difficulty.hard)
+              Difficulty.beginner)
           as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readString(offset)) as P;
+      return (reader.readBool(offset)) as P;
     case 6:
+      return (reader.readString(offset)) as P;
+    case 7:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-const _PlandifficultyEnumValueMap = {'hard': 0, 'intermediate': 1, 'easy': 2};
+const _PlandifficultyEnumValueMap = {
+  'beginner': 0,
+  'intermediate': 1,
+  'advanced': 2,
+};
 const _PlandifficultyValueEnumMap = {
-  0: Difficulty.hard,
+  0: Difficulty.beginner,
   1: Difficulty.intermediate,
-  2: Difficulty.easy,
+  2: Difficulty.advanced,
 };
 
 Id _planGetId(Plan object) {
@@ -643,6 +652,14 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> isActiveEqualTo(bool value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'isActive', value: value),
+      );
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterFilterCondition> isCustomEqualTo(bool value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -797,15 +814,17 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksCountEqualTo(int value) {
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksPerCycleEqualTo(
+    int value,
+  ) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'weeksCount', value: value),
+        FilterCondition.equalTo(property: r'weeksPerCycle', value: value),
       );
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksCountGreaterThan(
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksPerCycleGreaterThan(
     int value, {
     bool include = false,
   }) {
@@ -813,14 +832,14 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'weeksCount',
+          property: r'weeksPerCycle',
           value: value,
         ),
       );
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksCountLessThan(
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksPerCycleLessThan(
     int value, {
     bool include = false,
   }) {
@@ -828,14 +847,14 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'weeksCount',
+          property: r'weeksPerCycle',
           value: value,
         ),
       );
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksCountBetween(
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksPerCycleBetween(
     int lower,
     int upper, {
     bool includeLower = true,
@@ -844,7 +863,7 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'weeksCount',
+          property: r'weeksPerCycle',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -969,6 +988,18 @@ extension PlanQuerySortBy on QueryBuilder<Plan, Plan, QSortBy> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterSortBy> sortByIsCustom() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCustom', Sort.asc);
@@ -993,15 +1024,15 @@ extension PlanQuerySortBy on QueryBuilder<Plan, Plan, QSortBy> {
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterSortBy> sortByWeeksCount() {
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'weeksCount', Sort.asc);
+      return query.addSortBy(r'weeksPerCycle', Sort.asc);
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterSortBy> sortByWeeksCountDesc() {
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByWeeksPerCycleDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'weeksCount', Sort.desc);
+      return query.addSortBy(r'weeksPerCycle', Sort.desc);
     });
   }
 }
@@ -1067,6 +1098,18 @@ extension PlanQuerySortThenBy on QueryBuilder<Plan, Plan, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByIsActiveDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'isActive', Sort.desc);
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterSortBy> thenByIsCustom() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'isCustom', Sort.asc);
@@ -1091,15 +1134,15 @@ extension PlanQuerySortThenBy on QueryBuilder<Plan, Plan, QSortThenBy> {
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterSortBy> thenByWeeksCount() {
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'weeksCount', Sort.asc);
+      return query.addSortBy(r'weeksPerCycle', Sort.asc);
     });
   }
 
-  QueryBuilder<Plan, Plan, QAfterSortBy> thenByWeeksCountDesc() {
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByWeeksPerCycleDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'weeksCount', Sort.desc);
+      return query.addSortBy(r'weeksPerCycle', Sort.desc);
     });
   }
 }
@@ -1131,6 +1174,12 @@ extension PlanQueryWhereDistinct on QueryBuilder<Plan, Plan, QDistinct> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QDistinct> distinctByIsActive() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'isActive');
+    });
+  }
+
   QueryBuilder<Plan, Plan, QDistinct> distinctByIsCustom() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'isCustom');
@@ -1145,9 +1194,9 @@ extension PlanQueryWhereDistinct on QueryBuilder<Plan, Plan, QDistinct> {
     });
   }
 
-  QueryBuilder<Plan, Plan, QDistinct> distinctByWeeksCount() {
+  QueryBuilder<Plan, Plan, QDistinct> distinctByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'weeksCount');
+      return query.addDistinctBy(r'weeksPerCycle');
     });
   }
 }
@@ -1183,6 +1232,12 @@ extension PlanQueryProperty on QueryBuilder<Plan, Plan, QQueryProperty> {
     });
   }
 
+  QueryBuilder<Plan, bool, QQueryOperations> isActiveProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'isActive');
+    });
+  }
+
   QueryBuilder<Plan, bool, QQueryOperations> isCustomProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'isCustom');
@@ -1195,9 +1250,9 @@ extension PlanQueryProperty on QueryBuilder<Plan, Plan, QQueryProperty> {
     });
   }
 
-  QueryBuilder<Plan, int, QQueryOperations> weeksCountProperty() {
+  QueryBuilder<Plan, int, QQueryOperations> weeksPerCycleProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'weeksCount');
+      return query.addPropertyName(r'weeksPerCycle');
     });
   }
 }

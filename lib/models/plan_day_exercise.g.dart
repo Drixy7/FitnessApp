@@ -25,7 +25,8 @@ const PlanDayExerciseSchema = CollectionSchema(
     r'targetReps': PropertySchema(
       id: 1,
       name: r'targetReps',
-      type: IsarType.long,
+      type: IsarType.byte,
+      enumMap: _PlanDayExercisetargetRepsEnumValueMap,
     ),
     r'targetSets': PropertySchema(
       id: 2,
@@ -41,9 +42,9 @@ const PlanDayExerciseSchema = CollectionSchema(
   idName: r'id',
   indexes: {},
   links: {
-    r'exersise': LinkSchema(
-      id: -763624360612578648,
-      name: r'exersise',
+    r'exercise': LinkSchema(
+      id: 397385365707867914,
+      name: r'exercise',
       target: r'Exercise',
       single: true,
     ),
@@ -79,7 +80,7 @@ void _planDayExerciseSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.orderIndex);
-  writer.writeLong(offsets[1], object.targetReps);
+  writer.writeByte(offsets[1], object.targetReps.index);
   writer.writeLong(offsets[2], object.targetSets);
 }
 
@@ -92,7 +93,11 @@ PlanDayExercise _planDayExerciseDeserialize(
   final object = PlanDayExercise();
   object.id = id;
   object.orderIndex = reader.readLong(offsets[0]);
-  object.targetReps = reader.readLong(offsets[1]);
+  object.targetReps =
+      _PlanDayExercisetargetRepsValueEnumMap[reader.readByteOrNull(
+        offsets[1],
+      )] ??
+      RepRange.lowRep;
   object.targetSets = reader.readLong(offsets[2]);
   return object;
 }
@@ -107,7 +112,11 @@ P _planDayExerciseDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readLong(offset)) as P;
+      return (_PlanDayExercisetargetRepsValueEnumMap[reader.readByteOrNull(
+                offset,
+              )] ??
+              RepRange.lowRep)
+          as P;
     case 2:
       return (reader.readLong(offset)) as P;
     default:
@@ -115,12 +124,27 @@ P _planDayExerciseDeserializeProp<P>(
   }
 }
 
+const _PlanDayExercisetargetRepsEnumValueMap = {
+  'lowRep': 0,
+  'strength': 1,
+  'hypertrophy': 2,
+  'extendedHypertrophy': 3,
+  'highRep': 4,
+};
+const _PlanDayExercisetargetRepsValueEnumMap = {
+  0: RepRange.lowRep,
+  1: RepRange.strength,
+  2: RepRange.hypertrophy,
+  3: RepRange.extendedHypertrophy,
+  4: RepRange.highRep,
+};
+
 Id _planDayExerciseGetId(PlanDayExercise object) {
   return object.id;
 }
 
 List<IsarLinkBase<dynamic>> _planDayExerciseGetLinks(PlanDayExercise object) {
-  return [object.exersise, object.planDay];
+  return [object.exercise, object.planDay];
 }
 
 void _planDayExerciseAttach(
@@ -129,7 +153,7 @@ void _planDayExerciseAttach(
   PlanDayExercise object,
 ) {
   object.id = id;
-  object.exersise.attach(col, col.isar.collection<Exercise>(), r'exersise', id);
+  object.exercise.attach(col, col.isar.collection<Exercise>(), r'exercise', id);
   object.planDay.attach(col, col.isar.collection<PlanDay>(), r'planDay', id);
 }
 
@@ -327,7 +351,7 @@ extension PlanDayExerciseQueryFilter
   }
 
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
-  targetRepsEqualTo(int value) {
+  targetRepsEqualTo(RepRange value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.equalTo(property: r'targetReps', value: value),
@@ -336,7 +360,7 @@ extension PlanDayExerciseQueryFilter
   }
 
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
-  targetRepsGreaterThan(int value, {bool include = false}) {
+  targetRepsGreaterThan(RepRange value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
@@ -349,7 +373,7 @@ extension PlanDayExerciseQueryFilter
   }
 
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
-  targetRepsLessThan(int value, {bool include = false}) {
+  targetRepsLessThan(RepRange value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
@@ -363,8 +387,8 @@ extension PlanDayExerciseQueryFilter
 
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
   targetRepsBetween(
-    int lower,
-    int upper, {
+    RepRange lower,
+    RepRange upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
@@ -443,16 +467,16 @@ extension PlanDayExerciseQueryObject
 extension PlanDayExerciseQueryLinks
     on QueryBuilder<PlanDayExercise, PlanDayExercise, QFilterCondition> {
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
-  exersise(FilterQuery<Exercise> q) {
+  exercise(FilterQuery<Exercise> q) {
     return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'exersise');
+      return query.link(q, r'exercise');
     });
   }
 
   QueryBuilder<PlanDayExercise, PlanDayExercise, QAfterFilterCondition>
-  exersiseIsNull() {
+  exerciseIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'exersise', 0, true, 0, true);
+      return query.linkLength(r'exercise', 0, true, 0, true);
     });
   }
 
@@ -658,7 +682,8 @@ extension PlanDayExerciseQueryProperty
     });
   }
 
-  QueryBuilder<PlanDayExercise, int, QQueryOperations> targetRepsProperty() {
+  QueryBuilder<PlanDayExercise, RepRange, QQueryOperations>
+  targetRepsProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'targetReps');
     });

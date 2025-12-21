@@ -9,12 +9,12 @@ part 'plan_day.g.dart';
 class PlanDay {
   Id id = Isar.autoIncrement;
   late String name;
-  late String? description;
+  String? description;
   late int weekNumber;
   late int dayOrder;
-  bool isSkipped = false;
+
   @Backlink(to: "days")
-  final plan = IsarLinks<Plan>();
+  final plan = IsarLink<Plan>();
 
   final exercises = IsarLinks<PlanDayExercise>();
 }

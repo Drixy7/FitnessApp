@@ -8,12 +8,13 @@ part 'plan.g.dart';
 class Plan {
   Id id = Isar.autoIncrement;
   late String name;
-  late String? description;
-  late int weeksCount;
+  String? description;
+  late int weeksPerCycle;
   late int daysPerWeek;
+  late bool isActive;
   late bool isCustom;
   late DateTime createdAt;
   @enumerated
   late Difficulty difficulty;
-  final days=IsarLinks<PlanDay>();
+  final days = IsarLinks<PlanDay>();
 }

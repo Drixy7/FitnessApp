@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'user_progress.dart';
+part of 'plan_session.dart';
 
 // **************************************************************************
 // IsarCollectionGenerator
@@ -9,46 +9,45 @@ part of 'user_progress.dart';
 // coverage:ignore-file
 // ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
 
-extension GetUserProgressCollection on Isar {
-  IsarCollection<UserProgress> get userProgress => this.collection();
+extension GetPlanSessionCollection on Isar {
+  IsarCollection<PlanSession> get planSessions => this.collection();
 }
 
-const UserProgressSchema = CollectionSchema(
-  name: r'UserProgress',
-  id: 518958300452706037,
+const PlanSessionSchema = CollectionSchema(
+  name: r'PlanSession',
+  id: 6035127632714118446,
   properties: {
-    r'currentWeek': PropertySchema(
+    r'lastCompletedAbsoluteWeek': PropertySchema(
       id: 0,
-      name: r'currentWeek',
+      name: r'lastCompletedAbsoluteWeek',
       type: IsarType.long,
     ),
-    r'isActive': PropertySchema(id: 1, name: r'isActive', type: IsarType.bool),
     r'lastCompletedDay': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'lastCompletedDay',
       type: IsarType.long,
     ),
     r'lastWorkoutDate': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'lastWorkoutDate',
       type: IsarType.dateTime,
     ),
     r'startTime': PropertySchema(
-      id: 4,
+      id: 3,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
   },
 
-  estimateSize: _userProgressEstimateSize,
-  serialize: _userProgressSerialize,
-  deserialize: _userProgressDeserialize,
-  deserializeProp: _userProgressDeserializeProp,
+  estimateSize: _planSessionEstimateSize,
+  serialize: _planSessionSerialize,
+  deserialize: _planSessionDeserialize,
+  deserializeProp: _planSessionDeserializeProp,
   idName: r'id',
   indexes: {},
   links: {
     r'plan': LinkSchema(
-      id: 982763992571768947,
+      id: -649176271668820052,
       name: r'plan',
       target: r'Plan',
       single: true,
@@ -56,14 +55,14 @@ const UserProgressSchema = CollectionSchema(
   },
   embeddedSchemas: {},
 
-  getId: _userProgressGetId,
-  getLinks: _userProgressGetLinks,
-  attach: _userProgressAttach,
+  getId: _planSessionGetId,
+  getLinks: _planSessionGetLinks,
+  attach: _planSessionAttach,
   version: '3.3.0',
 );
 
-int _userProgressEstimateSize(
-  UserProgress object,
+int _planSessionEstimateSize(
+  PlanSession object,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
@@ -71,36 +70,34 @@ int _userProgressEstimateSize(
   return bytesCount;
 }
 
-void _userProgressSerialize(
-  UserProgress object,
+void _planSessionSerialize(
+  PlanSession object,
   IsarWriter writer,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.currentWeek);
-  writer.writeBool(offsets[1], object.isActive);
-  writer.writeLong(offsets[2], object.lastCompletedDay);
-  writer.writeDateTime(offsets[3], object.lastWorkoutDate);
-  writer.writeDateTime(offsets[4], object.startTime);
+  writer.writeLong(offsets[0], object.lastCompletedAbsoluteWeek);
+  writer.writeLong(offsets[1], object.lastCompletedDay);
+  writer.writeDateTime(offsets[2], object.lastWorkoutDate);
+  writer.writeDateTime(offsets[3], object.startTime);
 }
 
-UserProgress _userProgressDeserialize(
+PlanSession _planSessionDeserialize(
   Id id,
   IsarReader reader,
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  final object = UserProgress();
-  object.currentWeek = reader.readLong(offsets[0]);
+  final object = PlanSession();
   object.id = id;
-  object.isActive = reader.readBool(offsets[1]);
-  object.lastCompletedDay = reader.readLong(offsets[2]);
-  object.lastWorkoutDate = reader.readDateTimeOrNull(offsets[3]);
-  object.startTime = reader.readDateTime(offsets[4]);
+  object.lastCompletedAbsoluteWeek = reader.readLong(offsets[0]);
+  object.lastCompletedDay = reader.readLong(offsets[1]);
+  object.lastWorkoutDate = reader.readDateTimeOrNull(offsets[2]);
+  object.startTime = reader.readDateTime(offsets[3]);
   return object;
 }
 
-P _userProgressDeserializeProp<P>(
+P _planSessionDeserializeProp<P>(
   IsarReader reader,
   int propertyId,
   int offset,
@@ -110,53 +107,51 @@ P _userProgressDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
       return (reader.readLong(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readDateTimeOrNull(offset)) as P;
-    case 4:
+    case 3:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
 
-Id _userProgressGetId(UserProgress object) {
+Id _planSessionGetId(PlanSession object) {
   return object.id;
 }
 
-List<IsarLinkBase<dynamic>> _userProgressGetLinks(UserProgress object) {
+List<IsarLinkBase<dynamic>> _planSessionGetLinks(PlanSession object) {
   return [object.plan];
 }
 
-void _userProgressAttach(
+void _planSessionAttach(
   IsarCollection<dynamic> col,
   Id id,
-  UserProgress object,
+  PlanSession object,
 ) {
   object.id = id;
   object.plan.attach(col, col.isar.collection<Plan>(), r'plan', id);
 }
 
-extension UserProgressQueryWhereSort
-    on QueryBuilder<UserProgress, UserProgress, QWhere> {
-  QueryBuilder<UserProgress, UserProgress, QAfterWhere> anyId() {
+extension PlanSessionQueryWhereSort
+    on QueryBuilder<PlanSession, PlanSession, QWhere> {
+  QueryBuilder<PlanSession, PlanSession, QAfterWhere> anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension UserProgressQueryWhere
-    on QueryBuilder<UserProgress, UserProgress, QWhereClause> {
-  QueryBuilder<UserProgress, UserProgress, QAfterWhereClause> idEqualTo(Id id) {
+extension PlanSessionQueryWhere
+    on QueryBuilder<PlanSession, PlanSession, QWhereClause> {
+  QueryBuilder<PlanSession, PlanSession, QAfterWhereClause> idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterWhereClause> idNotEqualTo(
+  QueryBuilder<PlanSession, PlanSession, QAfterWhereClause> idNotEqualTo(
     Id id,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -180,7 +175,7 @@ extension UserProgressQueryWhere
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterWhereClause> idGreaterThan(
+  QueryBuilder<PlanSession, PlanSession, QAfterWhereClause> idGreaterThan(
     Id id, {
     bool include = false,
   }) {
@@ -191,7 +186,7 @@ extension UserProgressQueryWhere
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterWhereClause> idLessThan(
+  QueryBuilder<PlanSession, PlanSession, QAfterWhereClause> idLessThan(
     Id id, {
     bool include = false,
   }) {
@@ -202,7 +197,7 @@ extension UserProgressQueryWhere
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterWhereClause> idBetween(
+  QueryBuilder<PlanSession, PlanSession, QAfterWhereClause> idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
@@ -221,64 +216,9 @@ extension UserProgressQueryWhere
   }
 }
 
-extension UserProgressQueryFilter
-    on QueryBuilder<UserProgress, UserProgress, QFilterCondition> {
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
-  currentWeekEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'currentWeek', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
-  currentWeekGreaterThan(int value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'currentWeek',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
-  currentWeekLessThan(int value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'currentWeek',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
-  currentWeekBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'currentWeek',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> idEqualTo(
+extension PlanSessionQueryFilter
+    on QueryBuilder<PlanSession, PlanSession, QFilterCondition> {
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> idEqualTo(
     Id value,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -288,7 +228,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> idGreaterThan(
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> idGreaterThan(
     Id value, {
     bool include = false,
   }) {
@@ -303,7 +243,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> idLessThan(
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> idLessThan(
     Id value, {
     bool include = false,
   }) {
@@ -318,7 +258,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> idBetween(
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
@@ -337,16 +277,65 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
-  isActiveEqualTo(bool value) {
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  lastCompletedAbsoluteWeekEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isActive', value: value),
+        FilterCondition.equalTo(
+          property: r'lastCompletedAbsoluteWeek',
+          value: value,
+        ),
       );
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  lastCompletedAbsoluteWeekGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'lastCompletedAbsoluteWeek',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  lastCompletedAbsoluteWeekLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'lastCompletedAbsoluteWeek',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  lastCompletedAbsoluteWeekBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'lastCompletedAbsoluteWeek',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastCompletedDayEqualTo(int value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -355,7 +344,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastCompletedDayGreaterThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -368,7 +357,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastCompletedDayLessThan(int value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -381,7 +370,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastCompletedDayBetween(
     int lower,
     int upper, {
@@ -401,7 +390,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -410,7 +399,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateIsNotNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -419,7 +408,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateEqualTo(DateTime? value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -428,7 +417,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateGreaterThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -441,7 +430,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateLessThan(DateTime? value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -454,7 +443,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   lastWorkoutDateBetween(
     DateTime? lower,
     DateTime? upper, {
@@ -474,7 +463,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -483,7 +472,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeGreaterThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -496,7 +485,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeLessThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -509,7 +498,7 @@ extension UserProgressQueryFilter
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition>
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeBetween(
     DateTime lower,
     DateTime upper, {
@@ -530,12 +519,12 @@ extension UserProgressQueryFilter
   }
 }
 
-extension UserProgressQueryObject
-    on QueryBuilder<UserProgress, UserProgress, QFilterCondition> {}
+extension PlanSessionQueryObject
+    on QueryBuilder<PlanSession, PlanSession, QFilterCondition> {}
 
-extension UserProgressQueryLinks
-    on QueryBuilder<UserProgress, UserProgress, QFilterCondition> {
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> plan(
+extension PlanSessionQueryLinks
+    on QueryBuilder<PlanSession, PlanSession, QFilterCondition> {
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> plan(
     FilterQuery<Plan> q,
   ) {
     return QueryBuilder.apply(this, (query) {
@@ -543,230 +532,196 @@ extension UserProgressQueryLinks
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterFilterCondition> planIsNull() {
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> planIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(r'plan', 0, true, 0, true);
     });
   }
 }
 
-extension UserProgressQuerySortBy
-    on QueryBuilder<UserProgress, UserProgress, QSortBy> {
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> sortByCurrentWeek() {
+extension PlanSessionQuerySortBy
+    on QueryBuilder<PlanSession, PlanSession, QSortBy> {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
+  sortByLastCompletedAbsoluteWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentWeek', Sort.asc);
+      return query.addSortBy(r'lastCompletedAbsoluteWeek', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
-  sortByCurrentWeekDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
+  sortByLastCompletedAbsoluteWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentWeek', Sort.desc);
+      return query.addSortBy(r'lastCompletedAbsoluteWeek', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> sortByIsActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isActive', Sort.asc);
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> sortByIsActiveDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isActive', Sort.desc);
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   sortByLastCompletedDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedDay', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   sortByLastCompletedDayDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedDay', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
-  sortByLastWorkoutDate() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByLastWorkoutDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastWorkoutDate', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   sortByLastWorkoutDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastWorkoutDate', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> sortByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> sortByStartTimeDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
     });
   }
 }
 
-extension UserProgressQuerySortThenBy
-    on QueryBuilder<UserProgress, UserProgress, QSortThenBy> {
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByCurrentWeek() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentWeek', Sort.asc);
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
-  thenByCurrentWeekDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'currentWeek', Sort.desc);
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenById() {
+extension PlanSessionQuerySortThenBy
+    on QueryBuilder<PlanSession, PlanSession, QSortThenBy> {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByIsActive() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
+  thenByLastCompletedAbsoluteWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isActive', Sort.asc);
+      return query.addSortBy(r'lastCompletedAbsoluteWeek', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByIsActiveDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
+  thenByLastCompletedAbsoluteWeekDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isActive', Sort.desc);
+      return query.addSortBy(r'lastCompletedAbsoluteWeek', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   thenByLastCompletedDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedDay', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   thenByLastCompletedDayDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastCompletedDay', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
-  thenByLastWorkoutDate() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByLastWorkoutDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastWorkoutDate', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy>
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   thenByLastWorkoutDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'lastWorkoutDate', Sort.desc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QAfterSortBy> thenByStartTimeDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTimeDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.desc);
     });
   }
 }
 
-extension UserProgressQueryWhereDistinct
-    on QueryBuilder<UserProgress, UserProgress, QDistinct> {
-  QueryBuilder<UserProgress, UserProgress, QDistinct> distinctByCurrentWeek() {
+extension PlanSessionQueryWhereDistinct
+    on QueryBuilder<PlanSession, PlanSession, QDistinct> {
+  QueryBuilder<PlanSession, PlanSession, QDistinct>
+  distinctByLastCompletedAbsoluteWeek() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'currentWeek');
+      return query.addDistinctBy(r'lastCompletedAbsoluteWeek');
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QDistinct> distinctByIsActive() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isActive');
-    });
-  }
-
-  QueryBuilder<UserProgress, UserProgress, QDistinct>
+  QueryBuilder<PlanSession, PlanSession, QDistinct>
   distinctByLastCompletedDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastCompletedDay');
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QDistinct>
+  QueryBuilder<PlanSession, PlanSession, QDistinct>
   distinctByLastWorkoutDate() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastWorkoutDate');
     });
   }
 
-  QueryBuilder<UserProgress, UserProgress, QDistinct> distinctByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QDistinct> distinctByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startTime');
     });
   }
 }
 
-extension UserProgressQueryProperty
-    on QueryBuilder<UserProgress, UserProgress, QQueryProperty> {
-  QueryBuilder<UserProgress, int, QQueryOperations> idProperty() {
+extension PlanSessionQueryProperty
+    on QueryBuilder<PlanSession, PlanSession, QQueryProperty> {
+  QueryBuilder<PlanSession, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
     });
   }
 
-  QueryBuilder<UserProgress, int, QQueryOperations> currentWeekProperty() {
+  QueryBuilder<PlanSession, int, QQueryOperations>
+  lastCompletedAbsoluteWeekProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'currentWeek');
+      return query.addPropertyName(r'lastCompletedAbsoluteWeek');
     });
   }
 
-  QueryBuilder<UserProgress, bool, QQueryOperations> isActiveProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isActive');
-    });
-  }
-
-  QueryBuilder<UserProgress, int, QQueryOperations> lastCompletedDayProperty() {
+  QueryBuilder<PlanSession, int, QQueryOperations> lastCompletedDayProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCompletedDay');
     });
   }
 
-  QueryBuilder<UserProgress, DateTime?, QQueryOperations>
+  QueryBuilder<PlanSession, DateTime?, QQueryOperations>
   lastWorkoutDateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastWorkoutDate');
     });
   }
 
-  QueryBuilder<UserProgress, DateTime, QQueryOperations> startTimeProperty() {
+  QueryBuilder<PlanSession, DateTime, QQueryOperations> startTimeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'startTime');
     });

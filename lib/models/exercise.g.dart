@@ -92,7 +92,7 @@ Exercise _exerciseDeserialize(
       BodyPart.abs;
   object.difficulty =
       _ExercisedifficultyValueEnumMap[reader.readByteOrNull(offsets[1])] ??
-      Difficulty.hard;
+      Difficulty.beginner;
   object.id = id;
   object.moreInformationURL = reader.readStringOrNull(offsets[2]);
   object.name = reader.readString(offsets[3]);
@@ -112,7 +112,7 @@ P _exerciseDeserializeProp<P>(
           as P;
     case 1:
       return (_ExercisedifficultyValueEnumMap[reader.readByteOrNull(offset)] ??
-              Difficulty.hard)
+              Difficulty.beginner)
           as P;
     case 2:
       return (reader.readStringOrNull(offset)) as P;
@@ -134,6 +134,7 @@ const _ExercisebodyPartEnumValueMap = {
   'hamstrings': 7,
   'quads': 8,
   'calves': 9,
+  'forearms': 10,
 };
 const _ExercisebodyPartValueEnumMap = {
   0: BodyPart.abs,
@@ -146,16 +147,17 @@ const _ExercisebodyPartValueEnumMap = {
   7: BodyPart.hamstrings,
   8: BodyPart.quads,
   9: BodyPart.calves,
+  10: BodyPart.forearms,
 };
 const _ExercisedifficultyEnumValueMap = {
-  'hard': 0,
+  'beginner': 0,
   'intermediate': 1,
-  'easy': 2,
+  'advanced': 2,
 };
 const _ExercisedifficultyValueEnumMap = {
-  0: Difficulty.hard,
+  0: Difficulty.beginner,
   1: Difficulty.intermediate,
-  2: Difficulty.easy,
+  2: Difficulty.advanced,
 };
 
 Id _exerciseGetId(Exercise object) {
