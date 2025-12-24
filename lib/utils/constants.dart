@@ -432,6 +432,134 @@ List<Exercise> DefaultExercises() {
   ];
 }
 
+class PlanADefinition {
+  static const String name = "Push, Pull, Legs, Upper";
+  static const String description =
+      "Well balanced workout plan, focused mainly on upper body, recommended for intermediate lifters with some experience, 4 working days per week every sixth week is deload. Recommended to a bulking phase ";
+  static const int weeksPerCycle = 6;
+  static const Map<int, Map<String, Map<String, dynamic>>> blueprintsOfDays = {
+    1: {
+      "Barbell Squat": {"sets": 2, "reps": RepRange.strength},
+      "Barbell RDL": {"sets": 2, "reps": RepRange.strength},
+      "Machine Hip Adduction": {
+        "sets": 2,
+        "reps": RepRange.extendedHypertrophy,
+      },
+      "Machine Hip Abduction": {
+        "sets": 2,
+        "reps": RepRange.extendedHypertrophy,
+      },
+      "Leg Extensions": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Laying Leg Curl": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Machine Standing Calf Raise": {
+        "sets": 3,
+        "reps": RepRange.extendedHypertrophy,
+      },
+    },
+    2: {
+      "Bench Press": {"sets": 2, "reps": RepRange.strength},
+      "Incline Machine Press": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Machine Pec Fly": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Dumbbell Lateral Raises": {
+        "sets": 2,
+        "reps": RepRange.extendedHypertrophy,
+      },
+      "Cable Rope Pushdown": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Cable Bar Curl": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Cable Wrist Curl": {"sets": 2, "reps": RepRange.highRep},
+      "Machine Crunch": {"sets": 2, "reps": RepRange.hypertrophy},
+    },
+    4: {
+      "Machine Seated Calf Raise": {"sets": 3, "reps": RepRange.highRep},
+      "Barbell Deadlift": {"sets": 2, "reps": RepRange.lowRep},
+      "Seated Cable Row": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Lat Pulldown": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Cable Shrugs": {"sets": 2, "reps": RepRange.extendedHypertrophy},
+      "Machine Lateral Raises": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Reverse fly": {"sets": 2, "reps": RepRange.extendedHypertrophy},
+      "Preacher Curl": {"sets": 2, "reps": RepRange.hypertrophy},
+    },
+    7: {
+      "Incline Dumbbell Press": {"sets": 2, "reps": RepRange.strength},
+      "Pull-Ups": {"sets": 2, "reps": RepRange.strength},
+      "Dumbbell Shoulder Press": {"sets": 2, "reps": RepRange.strength},
+      "Barbell Close Grip Bench Press": {"sets": 2, "reps": RepRange.strength},
+      "Chest supported T Bar Row": {"sets": 2, "reps": RepRange.hypertrophy},
+      "Cable Rope Overhead Triceps Extension": {
+        "sets": 2,
+        "reps": RepRange.hypertrophy,
+      },
+      "Cable Hammer Curl": {"sets": 2, "reps": RepRange.hypertrophy},
+    },
+  };
+  static const Map<int, String> dayOrderAndNames = {
+    1: "Legs",
+    2: "Push",
+    4: "Pull",
+    7: "Upper",
+  };
+
+  static const Difficulty difficulty = Difficulty.intermediate;
+  final List<String> volumeIncrease = [
+    "Barbell Squat",
+    "Barbell RDL",
+    "Bench Press",
+    "Machine Pec fly",
+    "Cable Rope Pushdown",
+    "Cable Bar Curl",
+    "Barbell Deadlift",
+    "Seated Cable Row",
+    "Lat Pulldown",
+    "Reverse fly",
+    "Pull-Ups",
+    "Chest supported T Bar Row",
+    "Cable Rope Overhead Triceps Extension",
+    "Cable Hammer Curl",
+  ];
+
+  static const Map<int, Map<String, int>> progressionMap = {
+    3: {
+      "Seated Cable Row": 1,
+      "Lat Pulldown": 1,
+      "Reverse fly": 1,
+      "Machine Crunch": 1,
+      "Cable Wrist Curl": 1,
+      "Leg Extensions": 1,
+      "Laying Leg Curl": 1,
+      "Cable Shrugs": 1,
+      "Cable Rope Overhead Triceps Extension": 1,
+      "Cable Hammer Curl": 1,
+    },
+    4: {
+      "Seated Cable Row": 1,
+      "Lat Pulldown": 1,
+      "Reverse fly": 1,
+      "Machine Crunch": 1,
+      "Cable Wrist Curl": 1,
+      "Leg Extensions": 1,
+      "Laying Leg Curl": 1,
+      "Cable Shrugs": 1,
+      "Cable Rope Overhead Triceps Extension": 1,
+      "Cable Hammer Curl": 1,
+    },
+    5: {
+      "Seated Cable Row": 1,
+      "Lat Pulldown": 1,
+      "Reverse fly": 1,
+      "Machine Crunch": 1,
+      "Cable Wrist Curl": 1,
+      "Leg Extensions": 1,
+      "Laying Leg Curl": 1,
+      "Cable Shrugs": 1,
+      "Cable Rope Overhead Triceps Extension": 1,
+      "Cable Hammer Curl": 1,
+      "Dumbbell Lateral Raises": 1,
+      "Cable Rope Pushdown": 1,
+      "Cable Bar Curl": 1,
+    },
+  };
+}
+
 class WeekSelectionResult {
   int selectedTotalWeek;
   DateTime startOfWeek;

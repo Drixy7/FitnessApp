@@ -14,6 +14,7 @@ dependencies:
   path_provider: any
   provider: any
   intl: any
+  table_calendar: any
 
 dev_dependencies:
   flutter_test:

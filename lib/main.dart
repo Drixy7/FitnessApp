@@ -4,7 +4,7 @@ import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/providers/isar_service.dart';
 import "package:fitness_app/providers/plan_provider.dart";
 import 'package:fitness_app/providers/workout_provider.dart';
-import 'package:fitness_app/screens/home_screen.dart';
+import 'package:fitness_app/screens/main_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider_android/path_provider_android.dart';
 import 'package:path_provider_linux/path_provider_linux.dart';
@@ -54,7 +54,7 @@ class MainApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
         useMaterial3: true,
       ),
-      home: HomeScreen(),
+      home: MainScaffold(),
       debugShowCheckedModeBanner: false,
     );
   }

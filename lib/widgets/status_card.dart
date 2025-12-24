@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../utils/theme.dart';
 
 class StatusCard extends StatelessWidget {
-  // The constructor is 'const' because the widget itself never changes.
   const StatusCard({super.key});
 
   @override
@@ -17,6 +16,7 @@ class StatusCard extends StatelessWidget {
     void showWeekPicker() async {
       final WeekSelectionResult? result =
           await showModalBottomSheet<WeekSelectionResult>(
+            isScrollControlled:true ,
             context: context,
             builder: (ctx) {
               return Padding(

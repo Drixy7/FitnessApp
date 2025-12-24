@@ -160,15 +160,12 @@ class WorkoutProvider extends ChangeNotifier {
     if (workout == null) {
       return [];
     }
-
-    await workout.planDay.load();
     final day = workout.planDay.value;
 
     if (day == null) {
       return [];
     }
 
-    await day.exercises.load();
     return day.exercises.toList();
   }
 

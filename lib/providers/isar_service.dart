@@ -22,12 +22,10 @@ class IsarService {
   }
 
   Future<Isar> openDB() async {
-    //finds place where APP data is stored
     final dir = await getApplicationDocumentsDirectory();
 
     if (Isar.instanceNames.isEmpty) {
       return await Isar.open(
-        //this is a blueprint for the database
         [
           PlanSchema,
           PlanDaySchema,
@@ -38,11 +36,10 @@ class IsarService {
           WorkoutSetSchema,
           ExerciseSchema,
         ],
-        directory: dir.path, // tells Isar where to store data
-        inspector: true, //Useful for debugging
+        directory: dir.path,
+        inspector: true,
       );
     }
-    //If an instance is already open just return it, much faster than opening new one
     return Future.value(Isar.getInstance());
   }
 
@@ -57,140 +54,79 @@ class IsarService {
     });
   }
 
-  /*Future<void> seedAnyPlan({
+  Future<void> seedAnyPlan({
     required String planName,
     String? description,
     required int weeksPerCycle,
-    required List<Map<String, Map<String, dynamic>>> blueprintsOfDays,
-    required Map<int,String> dayOrderAndNames,
+    required Map<int, Map<String, Map<String, dynamic>>> blueprintsOfDays,
+    /* It maps dayOrder<int> to a parameter
+    map<String,Map<>> String represents name of exercise
+    Map<String,dynamic> represents parameters of exercise the string here can only be "sets" and "reps",
+    exercises in this map must be in order we want to have them in training*/
+    required Map<int, String>
+    dayOrderAndNames, // int is dayOrder string is Name
+    required Difficulty difficulty,
+    required Map<int, Map<String, int>> progressionMap,
   }) async {
     final isar = await db;
-  }*/
-
-  Future<void> seedDefaultPlanA() async {
-    final isar = await db;
-    final Map<String, Map<String, dynamic>> blueprintA = {
-      "Barbell Squat": {"sets": 2, "reps": RepRange.strength},
-      "Barbell RDL": {"sets": 2, "reps": RepRange.strength},
-      "Machine Hip Adduction": {
-        "sets": 2,
-        "reps": RepRange.extendedHypertrophy,
-      },
-      "Machine Hip Abduction": {
-        "sets": 2,
-        "reps": RepRange.extendedHypertrophy,
-      },
-      "Leg Extensions": {"sets": 3, "reps": RepRange.hypertrophy},
-      "Laying Leg Curl": {"sets": 3, "reps": RepRange.hypertrophy},
-      "Machine Standing Calf Raise": {
-        "sets": 3,
-        "reps": RepRange.extendedHypertrophy,
-      },
-    };
-    final Map<String, Map<String, dynamic>> blueprintB = {
-      "Bench Press": {"sets": 2, "reps": RepRange.strength},
-      "Incline Machine Press": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Machine Pec Fly": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Dumbbell Lateral Raises": {
-        "sets": 2,
-        "reps": RepRange.extendedHypertrophy,
-      },
-      "Cable Rope Pushdown": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Cable Bar Curl": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Cable Wrist Curl": {"sets": 2, "reps": RepRange.highRep},
-      "Machine Crunch": {"sets": 2, "reps": RepRange.hypertrophy},
-    };
-    final Map<String, Map<String, dynamic>> blueprintC = {
-      "Machine Seated Calf Raise": {"sets": 3, "reps": RepRange.highRep},
-      "Barbell Deadlift": {"sets": 2, "reps": RepRange.lowRep},
-      "Seated Cable Row": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Lat Pulldown": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Cable Shrugs": {"sets": 2, "reps": RepRange.extendedHypertrophy},
-      "Machine Lateral Raises": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Reverse fly": {"sets": 2, "reps": RepRange.extendedHypertrophy},
-      "Preacher Curl": {"sets": 2, "reps": RepRange.hypertrophy},
-    };
-    final Map<String, Map<String, dynamic>> blueprintD = {
-      "Incline Dumbbell Press": {"sets": 3, "reps": RepRange.strength},
-      "Pull-Ups": {"sets": 2, "reps": RepRange.strength},
-      "Dumbbell Shoulder Press": {"sets": 2, "reps": RepRange.strength},
-      "Barbell Close Grip Bench Press": {"sets": 2, "reps": RepRange.strength},
-      "Chest supported T Bar Row": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Cable Rope Overhead Triceps Extension": {
-        "sets": 2,
-        "reps": RepRange.hypertrophy,
-      },
-      "Cable Hammer Curl": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Machine Crunch": {"sets": 2, "reps": RepRange.hypertrophy},
-      "Hanging Knee Raise": {"sets": 2, "reps": RepRange.extendedHypertrophy},
-    };
 
     final allExercises = await isar.exercises.where().findAll();
     final exerciseMap = {for (var e in allExercises) e.name: e};
-    final List<PlanDay> allPlanDays = [];
-    await isar.writeTxn(() async {
-      for (int week = 1; week <= 6; week++) {
-        final dayA = await _createAndSavePlanDay(
-          isar: isar,
-          dayName: "Legs",
-          weekNumber: week,
-          dayOrder: 1,
-          blueprint: blueprintA,
-          exerciseMap: exerciseMap,
-        );
-        allPlanDays.add(dayA);
-        final dayB = await _createAndSavePlanDay(
-          isar: isar,
-          dayName: "Push",
-          weekNumber: week,
-          dayOrder: 2,
-          blueprint: blueprintB,
-          exerciseMap: exerciseMap,
-        );
-        allPlanDays.add(dayB);
-        final dayC = await _createAndSavePlanDay(
-          isar: isar,
-          dayName: "Pull",
-          weekNumber: week,
-          dayOrder: 4,
-          blueprint: blueprintC,
-          exerciseMap: exerciseMap,
-        );
-        allPlanDays.add(dayC);
 
-        final dayD = await _createAndSavePlanDay(
-          isar: isar,
-          dayName: "Upper",
-          weekNumber: week,
-          dayOrder: 7,
-          blueprint: blueprintD,
-          exerciseMap: exerciseMap,
-        );
-        allPlanDays.add(dayD);
+    final List<PlanDay> allPlanDays = [];
+    final List<int> workingDays = dayOrderAndNames.keys.toList();
+    await isar.writeTxn(() async {
+      for (int week = 1; week <= weeksPerCycle; week++) {
+        for (int i in workingDays) {
+          final day = await _createAndSavePlanDay(
+            isar: isar,
+            dayName: dayOrderAndNames[i]!,
+            weekNumber: week,
+            deloadWeekNumber: weeksPerCycle,
+            dayOrder: i,
+            blueprint: blueprintsOfDays[i]!,
+            exerciseMap: exerciseMap,
+            progressionMap: progressionMap,
+          );
+          allPlanDays.add(day);
+        }
       }
+
       final finalPlan = Plan()
-        ..name = "Push, Pull, Legs, Upper"
-        ..description =
-            "Well balanced workout plan, focused mainly on upper body, recommended for intermediate lifters with some experience, 4 working days per week every sixth week is deload. Recommended to a bulking phase "
+        ..name = planName
+        ..description = description
         ..days.addAll(allPlanDays)
-        ..weeksPerCycle = 6
-        ..daysPerWeek = 4
+        ..weeksPerCycle = weeksPerCycle
+        ..daysPerWeek = workingDays.length
         ..createdAt = DateTime.now()
         ..isActive = true
         ..isCustom = false
-        ..difficulty = Difficulty.intermediate;
+        ..difficulty = difficulty;
       await isar.plans.put(finalPlan);
       await finalPlan.days.save();
     });
+  }
+
+  Future<void> seedDefaultPlanA() async {
+    await seedAnyPlan(
+      planName: PlanADefinition.name,
+      weeksPerCycle: PlanADefinition.weeksPerCycle,
+      blueprintsOfDays: PlanADefinition.blueprintsOfDays,
+      dayOrderAndNames: PlanADefinition.dayOrderAndNames,
+      difficulty: PlanADefinition.difficulty,
+      progressionMap: PlanADefinition.progressionMap,
+    );
   }
 
   Future<PlanDay> _createAndSavePlanDay({
     required Isar isar,
     required String dayName,
     required int weekNumber,
+    required int deloadWeekNumber,
     required int dayOrder,
     required Map<String, Map<String, dynamic>> blueprint,
     required Map<String, Exercise> exerciseMap,
+    required Map<int, Map<String, int>> progressionMap,
   }) async {
     final planDay = PlanDay()
       ..name = dayName
@@ -200,6 +136,7 @@ class IsarService {
 
     final List<PlanDayExercise> planDayExercises = [];
     final blueprintEntries = blueprint.entries.toList();
+    final progressionWeeks = progressionMap.keys.toList();
 
     for (int i = 0; i < blueprintEntries.length; i++) {
       final entry = blueprintEntries[i];
@@ -208,31 +145,18 @@ class IsarService {
 
       int baseSets = exerciseDetails['sets'];
       RepRange repRange = exerciseDetails['reps'];
-      final List<String> volumeIncrease = [
-        "Barbell Squat",
-        "Barbell RDL",
-        "Bench Press",
-        "Machine Pec fly",
-        "Cable Rope Pushdown",
-        "Cable Bar Curl",
-        "Barbell Deadlift",
-        "Seated Cable Row",
-        "Lat Pulldown",
-        "Reverse fly",
-        "Pull-Ups",
-        "Chest supported T Bar Row",
-        "Cable Rope Overhead Triceps Extension",
-        "Cable Hammer Curl",
-      ];
 
       int progression = 0;
 
-      if (weekNumber == 3 ||
-          weekNumber == 4 && volumeIncrease.contains(exerciseName)) {
-        progression = 1;
-      } else if (weekNumber == 5) {
-        baseSets = 3;
-      } else if (weekNumber == 6) {
+      if (progressionWeeks.contains(weekNumber)) {
+        final exercisesForProgression = progressionMap[weekNumber]!.keys
+            .toList();
+        if (exercisesForProgression.contains(exerciseName)) {
+          progression = progressionMap[weekNumber]![exerciseName]!;
+        }
+      }
+
+      if (weekNumber == deloadWeekNumber) {
         baseSets = 2;
       }
 
@@ -376,6 +300,28 @@ class IsarService {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.workoutSets.putAll(sets);
+    });
+  }
+
+  Future<WeightLog?> findWeightLogForDate(DateTime targetDate) async {
+    final isar = await db;
+    DateTime targetDateMorphed = DateTime(
+      targetDate.year,
+      targetDate.month,
+      targetDate.day,
+    );
+
+    final weightEntry = await isar.weightLogs
+        .filter()
+        .dateEqualTo(targetDateMorphed)
+        .findFirst();
+    return weightEntry;
+  }
+
+  Future<void> updateOrCreateWeightLog(WeightLog weightLog) async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      await isar.weightLogs.put(weightLog);
     });
   }
 

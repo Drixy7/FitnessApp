@@ -18,7 +18,6 @@ class WorkoutSetScreen extends StatefulWidget {
 }
 
 class _WorkoutSetScreenState extends State<WorkoutSetScreen> {
-  // We'll need lists to hold the controllers for each text field
   List<TextEditingController> _weightControllers = [];
   List<TextEditingController> _repsControllers = [];
   Map<int, (double, int)> _loggedSets = {};
@@ -134,27 +133,61 @@ class _WorkoutSetScreenState extends State<WorkoutSetScreen> {
           else
             Column(
               children: List.generate(_weightControllers.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      Text("${index + 1}", style: AppTextStyles.pageMainTitle),
-                      Expanded(
-                        child: ValueIncrementer(
-                          controller: _weightControllers[index],
-                          incrementValue: 2.5,
-                          isDecimal: true,
+                return Dismissible(
+                  key: ValueKey(index),
+                  direction: DismissDirection.startToEnd,
+
+                  background: Container(
+                    color: Colors.orange,
+                    alignment: Alignment.centerLeft,
+                    padding: const EdgeInsets.only(left: 20.0),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.skip_next, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          "SKIP SET",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+
+                  confirmDismiss: (direction) async {
+                    return false;
+                  },
+
+                  child: Container(
+                    //TODO Implement skipping logic
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Text(
+                            "${index + 1}",
+                            style: AppTextStyles.pageMainTitle,
+                          ),
+                          Expanded(
+                            child: ValueIncrementer(
+                              controller: _weightControllers[index],
+                              incrementValue: 2.5,
+                              isDecimal: true,
+                            ),
+                          ),
+                          Expanded(
+                            child: ValueIncrementer(
+                              controller: _repsControllers[index],
+                              incrementValue: 1,
+                              isDecimal: false,
+                            ),
+                          ),
+                        ],
                       ),
-                      Expanded(
-                        child: ValueIncrementer(
-                          controller: _repsControllers[index],
-                          incrementValue: 1,
-                          isDecimal: false,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 );
               }),
