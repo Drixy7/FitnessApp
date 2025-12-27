@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 // This is the main screen of our app. It's the "container" for other widgets.
-class HomeScreen extends StatelessWidget {
+class DashboardScreen extends StatelessWidget {
   // const means this widget's properties will never change.
-  const HomeScreen({super.key});
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

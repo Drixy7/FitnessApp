@@ -24,7 +24,7 @@ Future<void> main() async {
   await isarService.clearDatabase();
   await isarService.seedDefaultExercises();
   await isarService.seedDefaultPlanA();
-  Plan? plan = await isarService.getFirstPlan();
+  Plan? plan = await isarService.findFirstPlan();
   await isarService.createDefaultPlanSession(plan!);
 
   runApp(

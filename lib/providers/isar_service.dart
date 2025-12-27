@@ -176,9 +176,14 @@ class IsarService {
     return planDay;
   }
 
-  Future<Plan?> getFirstPlan() async {
+  Future<Plan?> findFirstPlan() async {
     final isar = await db;
     return isar.plans.where().findFirst();
+  }
+
+  Future<List<Plan>> findAllPlans() async {
+    final isar = await db;
+    return isar.plans.where().findAll();
   }
 
   Future<PlanSession?> getActivePlanSession() async {

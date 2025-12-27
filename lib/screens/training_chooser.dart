@@ -1,1 +1,0 @@
-/* enables user to choose from premade training plans, in later implementation enables also creation of training plan */
