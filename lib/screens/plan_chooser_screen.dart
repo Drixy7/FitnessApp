@@ -1,25 +1,14 @@
 /* enables user to choose from premade training plans, in later implementation enables also creation of training plan */
 import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/providers/isar_service.dart';
-import 'package:fitness_app/screens/dashboard_screen.dart'; // Import HomeScreen for navigation
 import 'package:fitness_app/widgets/plan_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/plan_provider.dart';
+
 class PlanChooserScreen extends StatelessWidget {
   const PlanChooserScreen({super.key});
-
-  // --- Helper method for navigation and state creation ---
-  void _selectPlanAndNavigate(BuildContext context, Plan plan) async {
-    final isarService = context.read<IsarService>();
-    await isarService.createDefaultPlanSession(plan);
-    if (context.mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (ctx) => const DashboardScreen()),
-        (route) => false, // This predicate removes all previous routes.
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +20,6 @@ class PlanChooserScreen extends StatelessWidget {
       body: FutureBuilder<List<Plan>>(
         future: isarService.findAllPlans(),
         builder: (context, snapshot) {
-          // --- Handle the different states of the Future ---
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
@@ -49,7 +37,7 @@ class PlanChooserScreen extends StatelessWidget {
                 return PlanCard(
                   plan: plan,
                   onTap: () {
-                    _selectPlanAndNavigate(context, plan);
+                    context.read<PlanProvider>().startPlan(plan);
                   },
                 );
               },

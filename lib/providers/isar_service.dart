@@ -1,4 +1,4 @@
-import 'package:fitness_app/utils/enums.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -99,7 +99,7 @@ class IsarService {
         ..weeksPerCycle = weeksPerCycle
         ..daysPerWeek = workingDays.length
         ..createdAt = DateTime.now()
-        ..isActive = true
+        ..isActive = false
         ..isCustom = false
         ..difficulty = difficulty;
       await isar.plans.put(finalPlan);
@@ -191,21 +191,18 @@ class IsarService {
     return isar.planSessions.filter().lastWorkoutDateIsNull().findFirst();
   }
 
+  Future<PlanSession?> getLastPlanSession(Plan plan) async {
+    final isar = await db;
+    return isar.planSessions
+        .filter()
+        .plan((q) => q.idEqualTo(plan.id))
+        .sortByLastWorkoutDateDesc()
+        .findFirst();
+  }
+
   Future<void> savePlanSession(PlanSession session) async {
     final isar = await db;
     await isar.writeTxn(() => isar.planSessions.put(session));
-  }
-
-  Future<PlanSession> createDefaultPlanSession(Plan plan) async {
-    final isar = await db;
-    final newSession = PlanSession()
-      ..startTime = DateTime.now()
-      ..plan.value = plan;
-    await isar.writeTxn(() async {
-      await isar.planSessions.put(newSession);
-      await newSession.plan.save();
-    });
-    return newSession;
   }
 
   Future<PlanSession> createNewSession(PlanSession newSession) async {
@@ -215,6 +212,23 @@ class IsarService {
       await newSession.plan.save();
     });
     return newSession;
+  }
+
+  Future<PlanSession?> findSessionByDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final isar = await db;
+    return await isar.planSessions
+        .filter()
+        .startTimeLessThan(end)
+        .and()
+        .group(
+          (q) => q.lastWorkoutDateIsNull().or().lastWorkoutDateGreaterThan(
+            start,
+          ), // OR it ended after the week started
+        )
+        .findFirst();
   }
 
   Future<List<PlanDay>> getDaysForWeek(int weekNumber) async {

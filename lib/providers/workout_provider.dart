@@ -3,7 +3,7 @@ import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/models/workout_set.dart';
 import 'package:fitness_app/providers/isar_service.dart';
-import 'package:fitness_app/utils/constants.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 
 class WorkoutProvider extends ChangeNotifier {

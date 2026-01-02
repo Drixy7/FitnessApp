@@ -1,4 +1,4 @@
-import 'package:fitness_app/utils/constants.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:fitness_app/utils/formatters.dart';
 import 'package:fitness_app/utils/theme.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +47,7 @@ class _WeekChooserViewState extends State<WeekChooserView> {
     _rangeStart = _getStartOfWeek(initialDate);
     _rangeEnd = _getEndOfWeek(initialDate);
   }
+
   DateTime _getStartOfWeek(DateTime date) {
     return date.subtract(Duration(days: date.weekday - 1));
   }
@@ -119,13 +120,16 @@ class _WeekChooserViewState extends State<WeekChooserView> {
           selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
           rangeStartDay: _rangeStart,
           rangeEndDay: _rangeEnd,
-          rangeSelectionMode: RangeSelectionMode.enforced, // Highlights the whole range
+          rangeSelectionMode:
+              RangeSelectionMode.enforced, // Highlights the whole range
 
           onDaySelected: _onDaySelected,
 
           // Optional: styling to make the range look like a single bar
           calendarStyle: CalendarStyle(
-            rangeHighlightColor: Theme.of(context).primaryColor.withOpacity(0.2),
+            rangeHighlightColor: Theme.of(
+              context,
+            ).primaryColor.withOpacity(0.2),
             selectedDecoration: BoxDecoration(
               color: Theme.of(context).primaryColor,
               shape: BoxShape.circle,
@@ -143,7 +147,6 @@ class _WeekChooserViewState extends State<WeekChooserView> {
 
         const SizedBox(height: 20),
 
-        // 3. Confirm Button
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: ElevatedButton(

@@ -1,6 +1,6 @@
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/models/plan_session.dart';
-import 'package:fitness_app/utils/constants.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:fitness_app/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -14,6 +14,7 @@ class PlanProvider extends ChangeNotifier {
   // -- STATE VARIABLES --
   Plan? _activePlan;
   PlanSession? activeSession;
+  PlanSession? sessionInView;
   bool isLoading = true;
   List<PlanDay> daysForWeek = [];
   WeekSelectionResult? currentWeekSelection;
@@ -22,30 +23,58 @@ class PlanProvider extends ChangeNotifier {
     _initialize();
   }
 
-  // -- LOGIC TO FETCH DATA --
   Future<void> _initialize() async {
     isLoading = true;
     notifyListeners();
 
     activeSession = await _isarService.getActivePlanSession();
 
-    if (activeSession == null) {
-      isLoading = false;
-      notifyListeners();
-      return;
-      // TODO: REFACTOR THIS AFTER PLAN CHOOSER WILL BE IMPLEMENTED
+    if (activeSession != null) {
+      await _loadDataForActiveSession();
     }
-    await activeSession!.plan.load();
-    _activePlan = activeSession!.plan.value;
 
-    if (_activePlan == null) {
-      isLoading = false;
-      notifyListeners();
-      return;
-      // TODO: REFACTOR THIS AFTER PLAN CHOOSER WILL BE IMPLEMENTED
+    isLoading = false;
+    notifyListeners();
+  }
+
+  // -- LOGIC TO FETCH DATA --
+  Future<void> _loadDataForActiveSession() async {
+    if (activeSession == null) return;
+
+    if (activeSession!.plan.value == null) {
+      await activeSession!.plan.load();
     }
+    _activePlan = activeSession!.plan.value;
+    if (_activePlan == null) return;
     await _updateForWeek(activeSession!.lastCompletedAbsoluteWeek + 1);
     await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> startPlan(Plan plan) async {
+    isLoading = true;
+    notifyListeners();
+    PlanSession? previousSession = await _isarService.getLastPlanSession(plan);
+
+    plan.isActive = true;
+    PlanSession newSession = PlanSession()
+      ..plan.value = plan
+      ..startTime = DateTime(
+        DateTime.now().year,
+        DateTime.now().month,
+        DateTime.now().day,
+      );
+
+    if (previousSession != null) {
+      newSession.lastCompletedDay = previousSession.lastCompletedDay;
+      newSession.lastCompletedAbsoluteWeek =
+          previousSession.lastCompletedAbsoluteWeek;
+    }
+
+    activeSession = await _isarService.createNewSession(newSession);
+    await _loadDataForActiveSession();
+
     isLoading = false;
     notifyListeners();
   }
@@ -83,29 +112,39 @@ class PlanProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _resolveSessionForWeek() async {
+    if (currentWeekSelection == null) return;
+    final foundSession = await _isarService.findSessionByDateRange(
+      currentWeekSelection!.startOfWeek,
+      currentWeekSelection!.endOfWeek,
+    );
+    sessionInView = foundSession;
+  }
+
   void goToAnyWeek(int week) async {
+    await _updateForWeek(week);
     await _fetchDaysForWeek(week);
     notifyListeners();
   }
 
   void goToNextWeek() async {
-    if (_activePlan != null) {
-      _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
-      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
+    if (currentWeekSelection != null && _activePlan != null) {
+      await _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
+      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek + 1);
       notifyListeners();
     }
   }
 
   void goToPreviousWeek() async {
     if (currentWeekSelection!.selectedTotalWeek > 1 && _activePlan != null) {
-      _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
-      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
+      await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
+      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek - 1);
       notifyListeners();
     }
   }
 
   int get currentWeekInCycle {
-    if (_activePlan == null) return 1;
+    if (_activePlan == null || currentWeekSelection == null) return 1;
     return weekFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
       _activePlan!.weeksPerCycle,
@@ -113,12 +152,17 @@ class PlanProvider extends ChangeNotifier {
   }
 
   int get currentCycle {
-    if (_activePlan == null) return 1;
+    if (_activePlan == null || currentWeekSelection == null) return 1;
     return cycleFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
       _activePlan!.weeksPerCycle,
     );
   }
+
+  bool get isViewingForeignSession =>
+      sessionInView != null &&
+      activeSession != null &&
+      sessionInView!.plan.value?.id != activeSession!.plan.value?.id;
 
   String get formattedDateRange {
     if (currentWeekSelection == null) {

@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/providers/isar_service.dart';
 import "package:fitness_app/providers/plan_provider.dart";
 import 'package:fitness_app/providers/workout_provider.dart';
@@ -24,8 +23,6 @@ Future<void> main() async {
   await isarService.clearDatabase();
   await isarService.seedDefaultExercises();
   await isarService.seedDefaultPlanA();
-  Plan? plan = await isarService.findFirstPlan();
-  await isarService.createDefaultPlanSession(plan!);
 
   runApp(
     MultiProvider(

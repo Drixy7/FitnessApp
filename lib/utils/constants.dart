@@ -1,5 +1,5 @@
 import '../models/exercise.dart';
-import 'enums.dart';
+import 'datatypes.dart';
 
 List<Exercise> DefaultExercises() {
   return [
@@ -558,16 +558,4 @@ class PlanADefinition {
       "Cable Bar Curl": 1,
     },
   };
-}
-
-class WeekSelectionResult {
-  int selectedTotalWeek;
-  DateTime startOfWeek;
-  DateTime endOfWeek;
-
-  WeekSelectionResult({
-    required this.selectedTotalWeek,
-    required this.startOfWeek,
-    required this.endOfWeek,
-  });
 }

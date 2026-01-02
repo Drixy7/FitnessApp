@@ -1,5 +1,6 @@
 import 'package:isar_community/isar.dart';
-import '../utils/enums.dart';
+
+import '../utils/datatypes.dart';
 
 part 'exercise.g.dart';
 

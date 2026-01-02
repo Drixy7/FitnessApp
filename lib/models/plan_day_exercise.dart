@@ -1,4 +1,4 @@
-import 'package:fitness_app/utils/enums.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:isar_community/isar.dart';
 
 import 'exercise.dart';
