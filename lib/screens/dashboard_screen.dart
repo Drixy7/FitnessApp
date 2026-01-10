@@ -7,9 +7,7 @@ import 'package:fitness_app/widgets/training_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-// This is the main screen of our app. It's the "container" for other widgets.
 class DashboardScreen extends StatelessWidget {
-  // const means this widget's properties will never change.
   const DashboardScreen({super.key});
 
   @override
@@ -32,39 +30,50 @@ class DashboardScreen extends StatelessWidget {
       }
     }
 
-    if (planProvider.isViewingForeignSession) {
-      return Center(
-        child: Card(
-          color: Colors.amber.shade100,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    if (planProvider.isViewingForeignSession ||
+        planProvider.sessionInView == null) {
+      return Scaffold(
+        body: Column(
+          children: [
+            StatusCard(),
+            Column(
               children: [
-                StatusCard(),
-                const Icon(Icons.history, size: 48, color: Colors.orange),
-                const SizedBox(height: 10),
-                Text(
-                  "Different Training Phase",
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  "In this week, you were training under plan: "
-                  "${planProvider.sessionInView?.plan.value?.name ?? 'Unknown'}",
-                  textAlign: TextAlign.center,
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    planProvider.goToAnyWeek(
-                      planProvider.activeSession!.lastCompletedAbsoluteWeek + 1,
-                    );
-                  },
-                  child: const Text("Return to Current Week"),
+                Column(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.history, size: 48, color: Colors.orange),
+                    const SizedBox(height: 10),
+                    Text(
+                      planProvider.activeSession == null
+                          ? "Different Training Phase"
+                          : "No Session For This Week Found",
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      planProvider.activeSession == null
+                          ? "In this week, you were training under plan: "
+                          : "Please Return To Valid Week:"
+                                "${planProvider.sessionInView?.plan.value?.name ?? ''}",
+                      textAlign: TextAlign.center,
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        planProvider.goToAnyWeek(
+                          planProvider
+                                  .activeSession!
+                                  .lastCompletedAbsoluteWeek +
+                              1,
+                        );
+                      },
+                      child: const Text("Return to Current Week"),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ),
+          ],
         ),
       );
     }

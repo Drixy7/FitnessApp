@@ -52,7 +52,26 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> startPlan(Plan plan) async {
+  Future<void> endPlanSession() async {
+    if (activeSession == null) return;
+    isLoading = true;
+    notifyListeners();
+    final now = DateTime.now();
+    activeSession!.endDate = DateTime(now.year, now.month, now.day);
+    await _isarService.savePlanSession(activeSession!);
+    activeSession = null;
+    _activePlan = null;
+    sessionInView = null;
+    currentWeekSelection = null;
+    daysForWeek = [];
+    isLoading = false;
+    notifyListeners();
+  }
+
+  Future<void> startPlan(
+    Plan plan,
+    PlanPersonalizationResult personalization,
+  ) async {
     isLoading = true;
     notifyListeners();
     PlanSession? previousSession = await _isarService.getLastPlanSession(plan);
@@ -60,11 +79,7 @@ class PlanProvider extends ChangeNotifier {
     plan.isActive = true;
     PlanSession newSession = PlanSession()
       ..plan.value = plan
-      ..startTime = DateTime(
-        DateTime.now().year,
-        DateTime.now().month,
-        DateTime.now().day,
-      );
+      ..startTime = personalization.firstWeekStart;
 
     if (previousSession != null) {
       newSession.lastCompletedDay = previousSession.lastCompletedDay;
@@ -100,6 +115,7 @@ class PlanProvider extends ChangeNotifier {
       startOfWeek: startOfWeek,
       endOfWeek: endOfWeek,
     );
+    await _resolveSessionForWeek();
   }
 
   Future<void> _fetchDaysForWeek(int absoluteWeekNumber) async {
@@ -136,7 +152,7 @@ class PlanProvider extends ChangeNotifier {
   }
 
   void goToPreviousWeek() async {
-    if (currentWeekSelection!.selectedTotalWeek > 1 && _activePlan != null) {
+    if (currentWeekSelection != null && _activePlan != null) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
       await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek - 1);
       notifyListeners();
@@ -175,5 +191,9 @@ class PlanProvider extends ChangeNotifier {
     final end = currentWeekSelection!.endOfWeek;
     // Format both dates and combine them into a single string.
     return '${formatter.format(start)} - ${formatter.format(end)}';
+  }
+
+  DateTime? get planStartDate {
+    return _activePlan?.startedAt;
   }
 }

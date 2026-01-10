@@ -17,30 +17,30 @@ const PlanSchema = CollectionSchema(
   name: r'Plan',
   id: 8143067535675439181,
   properties: {
-    r'createdAt': PropertySchema(
-      id: 0,
-      name: r'createdAt',
-      type: IsarType.dateTime,
-    ),
     r'daysPerWeek': PropertySchema(
-      id: 1,
+      id: 0,
       name: r'daysPerWeek',
       type: IsarType.long,
     ),
     r'description': PropertySchema(
-      id: 2,
+      id: 1,
       name: r'description',
       type: IsarType.string,
     ),
     r'difficulty': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'difficulty',
       type: IsarType.byte,
       enumMap: _PlandifficultyEnumValueMap,
     ),
-    r'isActive': PropertySchema(id: 4, name: r'isActive', type: IsarType.bool),
-    r'isCustom': PropertySchema(id: 5, name: r'isCustom', type: IsarType.bool),
-    r'name': PropertySchema(id: 6, name: r'name', type: IsarType.string),
+    r'isActive': PropertySchema(id: 3, name: r'isActive', type: IsarType.bool),
+    r'isCustom': PropertySchema(id: 4, name: r'isCustom', type: IsarType.bool),
+    r'name': PropertySchema(id: 5, name: r'name', type: IsarType.string),
+    r'startedAt': PropertySchema(
+      id: 6,
+      name: r'startedAt',
+      type: IsarType.dateTime,
+    ),
     r'weeksPerCycle': PropertySchema(
       id: 7,
       name: r'weeksPerCycle',
@@ -92,13 +92,13 @@ void _planSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeDateTime(offsets[0], object.createdAt);
-  writer.writeLong(offsets[1], object.daysPerWeek);
-  writer.writeString(offsets[2], object.description);
-  writer.writeByte(offsets[3], object.difficulty.index);
-  writer.writeBool(offsets[4], object.isActive);
-  writer.writeBool(offsets[5], object.isCustom);
-  writer.writeString(offsets[6], object.name);
+  writer.writeLong(offsets[0], object.daysPerWeek);
+  writer.writeString(offsets[1], object.description);
+  writer.writeByte(offsets[2], object.difficulty.index);
+  writer.writeBool(offsets[3], object.isActive);
+  writer.writeBool(offsets[4], object.isCustom);
+  writer.writeString(offsets[5], object.name);
+  writer.writeDateTime(offsets[6], object.startedAt);
   writer.writeLong(offsets[7], object.weeksPerCycle);
 }
 
@@ -109,16 +109,16 @@ Plan _planDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = Plan();
-  object.createdAt = reader.readDateTime(offsets[0]);
-  object.daysPerWeek = reader.readLong(offsets[1]);
-  object.description = reader.readStringOrNull(offsets[2]);
+  object.daysPerWeek = reader.readLong(offsets[0]);
+  object.description = reader.readStringOrNull(offsets[1]);
   object.difficulty =
-      _PlandifficultyValueEnumMap[reader.readByteOrNull(offsets[3])] ??
+      _PlandifficultyValueEnumMap[reader.readByteOrNull(offsets[2])] ??
       Difficulty.beginner;
   object.id = id;
-  object.isActive = reader.readBool(offsets[4]);
-  object.isCustom = reader.readBool(offsets[5]);
-  object.name = reader.readString(offsets[6]);
+  object.isActive = reader.readBool(offsets[3]);
+  object.isCustom = reader.readBool(offsets[4]);
+  object.name = reader.readString(offsets[5]);
+  object.startedAt = reader.readDateTimeOrNull(offsets[6]);
   object.weeksPerCycle = reader.readLong(offsets[7]);
   return object;
 }
@@ -131,21 +131,21 @@ P _planDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readDateTime(offset)) as P;
-    case 1:
       return (reader.readLong(offset)) as P;
-    case 2:
+    case 1:
       return (reader.readStringOrNull(offset)) as P;
-    case 3:
+    case 2:
       return (_PlandifficultyValueEnumMap[reader.readByteOrNull(offset)] ??
               Difficulty.beginner)
           as P;
+    case 3:
+      return (reader.readBool(offset)) as P;
     case 4:
       return (reader.readBool(offset)) as P;
     case 5:
-      return (reader.readBool(offset)) as P;
-    case 6:
       return (reader.readString(offset)) as P;
+    case 6:
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 7:
       return (reader.readLong(offset)) as P;
     default:
@@ -256,65 +256,6 @@ extension PlanQueryWhere on QueryBuilder<Plan, Plan, QWhereClause> {
 }
 
 extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> createdAtEqualTo(
-    DateTime value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'createdAt', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> createdAtGreaterThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> createdAtLessThan(
-    DateTime value, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'createdAt',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<Plan, Plan, QAfterFilterCondition> createdAtBetween(
-    DateTime lower,
-    DateTime upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'createdAt',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
   QueryBuilder<Plan, Plan, QAfterFilterCondition> daysPerWeekEqualTo(
     int value,
   ) {
@@ -814,6 +755,81 @@ extension PlanQueryFilter on QueryBuilder<Plan, Plan, QFilterCondition> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'startedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'startedAt'),
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'startedAt', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtGreaterThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'startedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'startedAt',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> startedAtBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'startedAt',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterFilterCondition> weeksPerCycleEqualTo(
     int value,
   ) {
@@ -940,18 +956,6 @@ extension PlanQueryLinks on QueryBuilder<Plan, Plan, QFilterCondition> {
 }
 
 extension PlanQuerySortBy on QueryBuilder<Plan, Plan, QSortBy> {
-  QueryBuilder<Plan, Plan, QAfterSortBy> sortByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Plan, Plan, QAfterSortBy> sortByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
   QueryBuilder<Plan, Plan, QAfterSortBy> sortByDaysPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'daysPerWeek', Sort.asc);
@@ -1024,6 +1028,18 @@ extension PlanQuerySortBy on QueryBuilder<Plan, Plan, QSortBy> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByStartedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterSortBy> sortByStartedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterSortBy> sortByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'weeksPerCycle', Sort.asc);
@@ -1038,18 +1054,6 @@ extension PlanQuerySortBy on QueryBuilder<Plan, Plan, QSortBy> {
 }
 
 extension PlanQuerySortThenBy on QueryBuilder<Plan, Plan, QSortThenBy> {
-  QueryBuilder<Plan, Plan, QAfterSortBy> thenByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Plan, Plan, QAfterSortBy> thenByCreatedAtDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'createdAt', Sort.desc);
-    });
-  }
-
   QueryBuilder<Plan, Plan, QAfterSortBy> thenByDaysPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'daysPerWeek', Sort.asc);
@@ -1134,6 +1138,18 @@ extension PlanQuerySortThenBy on QueryBuilder<Plan, Plan, QSortThenBy> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByStartedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startedAt', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterSortBy> thenByStartedAtDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'startedAt', Sort.desc);
+    });
+  }
+
   QueryBuilder<Plan, Plan, QAfterSortBy> thenByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'weeksPerCycle', Sort.asc);
@@ -1148,12 +1164,6 @@ extension PlanQuerySortThenBy on QueryBuilder<Plan, Plan, QSortThenBy> {
 }
 
 extension PlanQueryWhereDistinct on QueryBuilder<Plan, Plan, QDistinct> {
-  QueryBuilder<Plan, Plan, QDistinct> distinctByCreatedAt() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'createdAt');
-    });
-  }
-
   QueryBuilder<Plan, Plan, QDistinct> distinctByDaysPerWeek() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'daysPerWeek');
@@ -1194,6 +1204,12 @@ extension PlanQueryWhereDistinct on QueryBuilder<Plan, Plan, QDistinct> {
     });
   }
 
+  QueryBuilder<Plan, Plan, QDistinct> distinctByStartedAt() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'startedAt');
+    });
+  }
+
   QueryBuilder<Plan, Plan, QDistinct> distinctByWeeksPerCycle() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'weeksPerCycle');
@@ -1205,12 +1221,6 @@ extension PlanQueryProperty on QueryBuilder<Plan, Plan, QQueryProperty> {
   QueryBuilder<Plan, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
-    });
-  }
-
-  QueryBuilder<Plan, DateTime, QQueryOperations> createdAtProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'createdAt');
     });
   }
 
@@ -1247,6 +1257,12 @@ extension PlanQueryProperty on QueryBuilder<Plan, Plan, QQueryProperty> {
   QueryBuilder<Plan, String, QQueryOperations> nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
+    });
+  }
+
+  QueryBuilder<Plan, DateTime?, QQueryOperations> startedAtProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'startedAt');
     });
   }
 

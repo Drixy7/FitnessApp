@@ -10,5 +10,5 @@ class PlanSession {
   int lastCompletedAbsoluteWeek = 0;
   int lastCompletedDay = 0;
   late DateTime startTime;
-  DateTime? lastWorkoutDate;
+  DateTime? endDate;
 }

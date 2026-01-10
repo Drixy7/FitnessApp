@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 class PlanCard extends StatelessWidget {
   final Plan plan;
   final VoidCallback onTap;
+  final bool isResuming;
 
-  const PlanCard({super.key, required this.onTap, required this.plan});
+  const PlanCard({
+    super.key,
+    required this.onTap,
+    required this.plan,
+    required this.isResuming,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +52,9 @@ class PlanCard extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: onTap,
-                    child: const Text("Select This Plan"),
+                    child: Text(
+                      isResuming ? "Resume This Plan" : "Select This Plan",
+                    ),
                   ),
                 ),
               ],

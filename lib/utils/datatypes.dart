@@ -25,14 +25,28 @@ enum RepRange {
 }
 
 class WeekSelectionResult {
-  int selectedTotalWeek;
-  DateTime startOfWeek;
-  DateTime endOfWeek;
+  final int selectedTotalWeek;
+  final DateTime startOfWeek;
+  final DateTime endOfWeek;
+  final DateTime? selectedDay;
 
-  WeekSelectionResult({
+  const WeekSelectionResult({
     required this.selectedTotalWeek,
     required this.startOfWeek,
     required this.endOfWeek,
+    this.selectedDay,
+  });
+}
+
+class PlanPersonalizationResult {
+  final Map<String, int>? dayOrder;
+  final DateTime selectedStartDate;
+  final DateTime firstWeekStart;
+
+  const PlanPersonalizationResult({
+    this.dayOrder,
+    required this.selectedStartDate,
+    required this.firstWeekStart,
   });
 }
 

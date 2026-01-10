@@ -1,6 +1,7 @@
 /* enables user to choose from premade training plans, in later implementation enables also creation of training plan */
 import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/providers/isar_service.dart';
+import 'package:fitness_app/widgets/pickers/plan_personalization.dart';
 import 'package:fitness_app/widgets/plan_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,13 +11,32 @@ import '../providers/plan_provider.dart';
 class PlanChooserScreen extends StatelessWidget {
   const PlanChooserScreen({super.key});
 
+  Future<void > _personalizatePlan(BuildContext context, Plan plan)async{
+    final result = await showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: PlanPersonalization(plan: plan),
+        );
+      },
+    );
+    if (context.mounted && result != null) {
+      context.read<PlanProvider>().startPlan(plan, result);
+    }
+  }
+
+  void _resumePlan(BuildContext context,Plan plan){
+    context.read<PlanProvider>().startPlan(plan, personalization)
+    
+  }
   @override
   Widget build(BuildContext context) {
     final isarService = context.read<IsarService>();
 
     return Scaffold(
       appBar: AppBar(title: const Text("Choose Your Plan"), centerTitle: true),
-      // Use of a FutureBuilder to handle the asynchronous data fetching.
       body: FutureBuilder<List<Plan>>(
         future: isarService.findAllPlans(),
         builder: (context, snapshot) {
@@ -34,10 +54,25 @@ class PlanChooserScreen extends StatelessWidget {
               itemCount: plans.length,
               itemBuilder: (context, index) {
                 final plan = plans[index];
-                return PlanCard(
-                  plan: plan,
-                  onTap: () {
-                    context.read<PlanProvider>().startPlan(plan);
+                return FutureBuilder(
+                  future: isarService.findIfSessionExist(plan),
+                  builder: (context, sessionSnapshot) {
+                    if (sessionSnapshot.connectionState ==
+                        ConnectionState.waiting) {
+                      return const SizedBox(
+                        height: 100,
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      );
+                    }
+                    final bool isResuming = sessionSnapshot.data ?? false;
+                    
+                    return PlanCard(
+                      plan: plan,
+                      isResuming: isResuming,
+                      onTap: ,
+                    );
                   },
                 );
               },

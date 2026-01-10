@@ -13,7 +13,7 @@ class Plan {
   late int daysPerWeek;
   late bool isActive;
   late bool isCustom;
-  late DateTime createdAt;
+  late DateTime? startedAt;
   @enumerated
   late Difficulty difficulty;
   final days = IsarLinks<PlanDay>();

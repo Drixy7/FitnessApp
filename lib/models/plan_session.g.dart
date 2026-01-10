@@ -17,20 +17,20 @@ const PlanSessionSchema = CollectionSchema(
   name: r'PlanSession',
   id: 6035127632714118446,
   properties: {
-    r'lastCompletedAbsoluteWeek': PropertySchema(
+    r'endDate': PropertySchema(
       id: 0,
+      name: r'endDate',
+      type: IsarType.dateTime,
+    ),
+    r'lastCompletedAbsoluteWeek': PropertySchema(
+      id: 1,
       name: r'lastCompletedAbsoluteWeek',
       type: IsarType.long,
     ),
     r'lastCompletedDay': PropertySchema(
-      id: 1,
+      id: 2,
       name: r'lastCompletedDay',
       type: IsarType.long,
-    ),
-    r'lastWorkoutDate': PropertySchema(
-      id: 2,
-      name: r'lastWorkoutDate',
-      type: IsarType.dateTime,
     ),
     r'startTime': PropertySchema(
       id: 3,
@@ -76,9 +76,9 @@ void _planSessionSerialize(
   List<int> offsets,
   Map<Type, List<int>> allOffsets,
 ) {
-  writer.writeLong(offsets[0], object.lastCompletedAbsoluteWeek);
-  writer.writeLong(offsets[1], object.lastCompletedDay);
-  writer.writeDateTime(offsets[2], object.lastWorkoutDate);
+  writer.writeDateTime(offsets[0], object.endDate);
+  writer.writeLong(offsets[1], object.lastCompletedAbsoluteWeek);
+  writer.writeLong(offsets[2], object.lastCompletedDay);
   writer.writeDateTime(offsets[3], object.startTime);
 }
 
@@ -89,10 +89,10 @@ PlanSession _planSessionDeserialize(
   Map<Type, List<int>> allOffsets,
 ) {
   final object = PlanSession();
+  object.endDate = reader.readDateTimeOrNull(offsets[0]);
   object.id = id;
-  object.lastCompletedAbsoluteWeek = reader.readLong(offsets[0]);
-  object.lastCompletedDay = reader.readLong(offsets[1]);
-  object.lastWorkoutDate = reader.readDateTimeOrNull(offsets[2]);
+  object.lastCompletedAbsoluteWeek = reader.readLong(offsets[1]);
+  object.lastCompletedDay = reader.readLong(offsets[2]);
   object.startTime = reader.readDateTime(offsets[3]);
   return object;
 }
@@ -105,11 +105,11 @@ P _planSessionDeserializeProp<P>(
 ) {
   switch (propertyId) {
     case 0:
-      return (reader.readLong(offset)) as P;
+      return (reader.readDateTimeOrNull(offset)) as P;
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readDateTimeOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 3:
       return (reader.readDateTime(offset)) as P;
     default:
@@ -218,6 +218,81 @@ extension PlanSessionQueryWhere
 
 extension PlanSessionQueryFilter
     on QueryBuilder<PlanSession, PlanSession, QFilterCondition> {
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  endDateIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'endDate'),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  endDateIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'endDate'),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> endDateEqualTo(
+    DateTime? value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'endDate', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
+  endDateGreaterThan(DateTime? value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'endDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> endDateLessThan(
+    DateTime? value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'endDate',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> endDateBetween(
+    DateTime? lower,
+    DateTime? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'endDate',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition> idEqualTo(
     Id value,
   ) {
@@ -391,79 +466,6 @@ extension PlanSessionQueryFilter
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'lastWorkoutDate'),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'lastWorkoutDate'),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateEqualTo(DateTime? value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'lastWorkoutDate', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateGreaterThan(DateTime? value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'lastWorkoutDate',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateLessThan(DateTime? value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'lastWorkoutDate',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastWorkoutDateBetween(
-    DateTime? lower,
-    DateTime? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'lastWorkoutDate',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -541,6 +543,18 @@ extension PlanSessionQueryLinks
 
 extension PlanSessionQuerySortBy
     on QueryBuilder<PlanSession, PlanSession, QSortBy> {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByEndDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.desc);
+    });
+  }
+
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
   sortByLastCompletedAbsoluteWeek() {
     return QueryBuilder.apply(this, (query) {
@@ -569,19 +583,6 @@ extension PlanSessionQuerySortBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByLastWorkoutDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastWorkoutDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  sortByLastWorkoutDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastWorkoutDate', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
@@ -597,6 +598,18 @@ extension PlanSessionQuerySortBy
 
 extension PlanSessionQuerySortThenBy
     on QueryBuilder<PlanSession, PlanSession, QSortThenBy> {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.asc);
+    });
+  }
+
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByEndDateDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'endDate', Sort.desc);
+    });
+  }
+
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
@@ -637,19 +650,6 @@ extension PlanSessionQuerySortThenBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByLastWorkoutDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastWorkoutDate', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  thenByLastWorkoutDateDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastWorkoutDate', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
@@ -665,6 +665,12 @@ extension PlanSessionQuerySortThenBy
 
 extension PlanSessionQueryWhereDistinct
     on QueryBuilder<PlanSession, PlanSession, QDistinct> {
+  QueryBuilder<PlanSession, PlanSession, QDistinct> distinctByEndDate() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'endDate');
+    });
+  }
+
   QueryBuilder<PlanSession, PlanSession, QDistinct>
   distinctByLastCompletedAbsoluteWeek() {
     return QueryBuilder.apply(this, (query) {
@@ -676,13 +682,6 @@ extension PlanSessionQueryWhereDistinct
   distinctByLastCompletedDay() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'lastCompletedDay');
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QDistinct>
-  distinctByLastWorkoutDate() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastWorkoutDate');
     });
   }
 
@@ -701,6 +700,12 @@ extension PlanSessionQueryProperty
     });
   }
 
+  QueryBuilder<PlanSession, DateTime?, QQueryOperations> endDateProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'endDate');
+    });
+  }
+
   QueryBuilder<PlanSession, int, QQueryOperations>
   lastCompletedAbsoluteWeekProperty() {
     return QueryBuilder.apply(this, (query) {
@@ -711,13 +716,6 @@ extension PlanSessionQueryProperty
   QueryBuilder<PlanSession, int, QQueryOperations> lastCompletedDayProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCompletedDay');
-    });
-  }
-
-  QueryBuilder<PlanSession, DateTime?, QQueryOperations>
-  lastWorkoutDateProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lastWorkoutDate');
     });
   }
 
