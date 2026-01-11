@@ -51,11 +51,11 @@ class PlanPersonalizationResult {
 }
 
 class BlueprintEntry {
-  String exerciseName;
-  int sets;
-  RepRange reps;
+  final String exerciseName;
+  final int sets;
+  final RepRange reps;
 
-  BlueprintEntry({
+  const BlueprintEntry({
     required this.exerciseName,
     required this.sets,
     required this.reps,

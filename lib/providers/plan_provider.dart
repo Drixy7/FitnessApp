@@ -58,7 +58,7 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners();
     final now = DateTime.now();
     activeSession!.endDate = DateTime(now.year, now.month, now.day);
-    await _isarService.savePlanSession(activeSession!);
+    await _isarService.createOrSaveSession(activeSession!);
     activeSession = null;
     _activePlan = null;
     sessionInView = null;
@@ -72,24 +72,28 @@ class PlanProvider extends ChangeNotifier {
     Plan plan,
     PlanPersonalizationResult personalization,
   ) async {
+    //TODO Implement workout skip logic depending on personalization.selectedStartDate, and implement reordering of PLANDAYS
     isLoading = true;
     notifyListeners();
+
     PlanSession? previousSession = await _isarService.getLastPlanSession(plan);
-
     plan.isActive = true;
-    PlanSession newSession = PlanSession()
-      ..plan.value = plan
-      ..startTime = personalization.firstWeekStart;
 
-    if (previousSession != null) {
-      newSession.lastCompletedDay = previousSession.lastCompletedDay;
-      newSession.lastCompletedAbsoluteWeek =
-          previousSession.lastCompletedAbsoluteWeek;
+    if (previousSession != null &&
+        previousSession.startTime == personalization.firstWeekStart) {
+      activeSession = previousSession;
+    } else {
+      PlanSession newSession = PlanSession()
+        ..plan.value = plan
+        ..startTime = personalization.firstWeekStart
+        ..lastCompletedDay = previousSession?.lastCompletedDay ?? 0
+        ..lastCompletedAbsoluteWeek =
+            previousSession?.lastCompletedAbsoluteWeek ?? 0;
+
+      activeSession = await _isarService.createOrSaveSession(newSession);
     }
 
-    activeSession = await _isarService.createNewSession(newSession);
     await _loadDataForActiveSession();
-
     isLoading = false;
     notifyListeners();
   }
@@ -119,6 +123,7 @@ class PlanProvider extends ChangeNotifier {
   }
 
   Future<void> _fetchDaysForWeek(int absoluteWeekNumber) async {
+    //TODO remake for usage of dates and counting of absoluteWeek via dates and foreign sessions!
     if (_activePlan != null && absoluteWeekNumber >= 1) {
       int weekNumber = weekFromAbsoluteWeek(
         absoluteWeekNumber,
@@ -146,7 +151,7 @@ class PlanProvider extends ChangeNotifier {
   void goToNextWeek() async {
     if (currentWeekSelection != null && _activePlan != null) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
-      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek + 1);
+      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
       notifyListeners();
     }
   }
@@ -154,13 +159,13 @@ class PlanProvider extends ChangeNotifier {
   void goToPreviousWeek() async {
     if (currentWeekSelection != null && _activePlan != null) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
-      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek - 1);
+      await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
       notifyListeners();
     }
   }
 
   int get currentWeekInCycle {
-    if (_activePlan == null || currentWeekSelection == null) return 1;
+    if (_activePlan == null || currentWeekSelection == null) return -1;
     return weekFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
       _activePlan!.weeksPerCycle,
@@ -168,7 +173,7 @@ class PlanProvider extends ChangeNotifier {
   }
 
   int get currentCycle {
-    if (_activePlan == null || currentWeekSelection == null) return 1;
+    if (_activePlan == null || currentWeekSelection == null) return -1;
     return cycleFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
       _activePlan!.weeksPerCycle,

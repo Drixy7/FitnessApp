@@ -7,7 +7,12 @@ import 'package:intl/intl.dart';
 
 class PlanPersonalization extends StatefulWidget {
   final Plan plan;
-  const PlanPersonalization({super.key, required this.plan});
+  final bool isDayOrderDisabled;
+  const PlanPersonalization({
+    super.key,
+    required this.plan,
+    required this.isDayOrderDisabled,
+  });
 
   @override
   State<PlanPersonalization> createState() => _PlanPersonalizationState();
@@ -58,18 +63,14 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
             "This change is irreversible. Once you start this plan session, you cannot change the initial day order settings. Do you agree?",
           ),
           actions: [
-            // "Cancel" button - just closes the alert
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text("Cancel"),
             ),
-            // "Agree" button - closes alert AND returns result from the modal
             ElevatedButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop(); // Close the Alert
-                Navigator.of(
-                  context,
-                ).pop(result); // Close the Personalization Modal with result
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pop(result);
               },
               child: const Text("I Agree"),
             ),
@@ -183,51 +184,54 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
           ),
           const SizedBox(height: 32),
 
-          // --- DAY ORDER PERSONALIZATION ---
-          Text("Personalize workout days", style: AppTextStyles.listTitle),
-          const SizedBox(height: 8),
-          ..._dayOrder.entries.map((entry) {
-            String dayName = entry.key;
-            int currentWeekDay = entry.value;
+          if (!widget.isDayOrderDisabled) ...[
+            // --- DAY ORDER PERSONALIZATION ---
+            Text("Personalize workout days", style: AppTextStyles.listTitle),
+            const SizedBox(height: 8),
+            ..._dayOrder.entries.map((entry) {
+              String dayName = entry.key;
+              int currentWeekDay = entry.value;
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(dayName, style: AppTextStyles.listTitle),
-                  ),
-                  DropdownButton<int>(
-                    value: currentWeekDay,
-                    items: weekDayOptions.map((dayNum) {
-                      return DropdownMenuItem<int>(
-                        value: dayNum,
-                        child: Text(_daysInWeek[dayNum - 1]),
-                      );
-                    }).toList(),
-                    onChanged: (newWeekDay) {
-                      if (newWeekDay != null && newWeekDay != currentWeekDay) {
-                        setState(() {
-                          final otherEntry = _dayOrder.entries
-                              .cast<
-                                MapEntry<String, int>?
-                              >() // Helper for firstWhereOrNull logic
-                              .firstWhere(
-                                (e) => e!.value == newWeekDay,
-                                orElse: () => null,
-                              );
-                          if (otherEntry != null) {
-                            _dayOrder[otherEntry.key] = currentWeekDay;
-                          }
-                          _dayOrder[dayName] = newWeekDay;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
-          }),
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(dayName, style: AppTextStyles.listTitle),
+                    ),
+                    DropdownButton<int>(
+                      value: currentWeekDay,
+                      items: weekDayOptions.map((dayNum) {
+                        return DropdownMenuItem<int>(
+                          value: dayNum,
+                          child: Text(_daysInWeek[dayNum - 1]),
+                        );
+                      }).toList(),
+                      onChanged: (newWeekDay) {
+                        if (newWeekDay != null &&
+                            newWeekDay != currentWeekDay) {
+                          setState(() {
+                            final otherEntry = _dayOrder.entries
+                                .cast<
+                                  MapEntry<String, int>?
+                                >() // Helper for firstWhereOrNull logic
+                                .firstWhere(
+                                  (e) => e!.value == newWeekDay,
+                                  orElse: () => null,
+                                );
+                            if (otherEntry != null) {
+                              _dayOrder[otherEntry.key] = currentWeekDay;
+                            }
+                            _dayOrder[dayName] = newWeekDay;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
           const SizedBox(height: 32),
           // --- ACTION BUTTONS ---
           Row(
@@ -243,7 +247,11 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
                       selectedStartDate: _selectedStartDate,
                       firstWeekStart: _firstWeekStart,
                     );
-                    _showWarningDialog(result, context);
+                    if (!widget.isDayOrderDisabled) {
+                      _showWarningDialog(result, context);
+                    } else {
+                      Navigator.of(context).pop(result);
+                    }
                   },
                   child: const Text("Start Plan"),
                 ),

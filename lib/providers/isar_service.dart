@@ -59,11 +59,8 @@ class IsarService {
     required String planName,
     String? description,
     required int weeksPerCycle,
-    required Map<int, Map<String, Map<String, dynamic>>> blueprintsOfDays,
-    /* It maps dayOrder<int> to a parameter
-    map<String,Map<>> String represents name of exercise
-    Map<String,dynamic> represents parameters of exercise the string here can only be "sets" and "reps",
-    exercises in this map must be in order we want to have them in training*/
+    required Map<int, List<BlueprintEntry>> blueprintsOfDays,
+    /* It maps dayOrder<int> to List - representing a single day */
     required Map<int, String>
     dayOrderAndNames, // int is dayOrder string is Name
     required Difficulty difficulty,
@@ -125,7 +122,7 @@ class IsarService {
     required int weekNumber,
     required int deloadWeekNumber,
     required int dayOrder,
-    required Map<String, Map<String, dynamic>> blueprint,
+    required List<BlueprintEntry> blueprint,
     required Map<String, Exercise> exerciseMap,
     required Map<int, Map<String, int>> progressionMap,
   }) async {
@@ -136,24 +133,19 @@ class IsarService {
     await isar.planDays.put(planDay);
 
     final List<PlanDayExercise> planDayExercises = [];
-    final blueprintEntries = blueprint.entries.toList();
     final progressionWeeks = progressionMap.keys.toList();
 
-    for (int i = 0; i < blueprintEntries.length; i++) {
-      final entry = blueprintEntries[i];
-      final exerciseName = entry.key;
-      final exerciseDetails = entry.value;
-
-      int baseSets = exerciseDetails['sets'];
-      RepRange repRange = exerciseDetails['reps'];
+    for (final (int index, BlueprintEntry entry) in blueprint.indexed) {
+      int baseSets = entry.sets;
+      RepRange repRange = entry.reps;
 
       int progression = 0;
 
       if (progressionWeeks.contains(weekNumber)) {
         final exercisesForProgression = progressionMap[weekNumber]!.keys
             .toList();
-        if (exercisesForProgression.contains(exerciseName)) {
-          progression = progressionMap[weekNumber]![exerciseName]!;
+        if (exercisesForProgression.contains(entry.exerciseName)) {
+          progression = progressionMap[weekNumber]![entry.exerciseName]!;
         }
       }
 
@@ -162,9 +154,9 @@ class IsarService {
       }
 
       final planDayExercise = PlanDayExercise()
-        ..exercise.value = exerciseMap[exerciseName]!
+        ..exercise.value = exerciseMap[entry.exerciseName]!
         ..targetSets = baseSets + progression
-        ..orderIndex = i
+        ..orderIndex = index
         ..targetReps = repRange;
       planDayExercises.add(planDayExercise);
     }
@@ -221,12 +213,7 @@ class IsarService {
         .findFirst();
   }
 
-  Future<void> savePlanSession(PlanSession session) async {
-    final isar = await db;
-    await isar.writeTxn(() => isar.planSessions.put(session));
-  }
-
-  Future<PlanSession> createNewSession(PlanSession newSession) async {
+  Future<PlanSession> createOrSaveSession(PlanSession newSession) async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.planSessions.put(newSession);

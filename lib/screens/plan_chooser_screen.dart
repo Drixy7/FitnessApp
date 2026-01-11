@@ -11,14 +11,21 @@ import '../providers/plan_provider.dart';
 class PlanChooserScreen extends StatelessWidget {
   const PlanChooserScreen({super.key});
 
-  Future<void > _personalizatePlan(BuildContext context, Plan plan)async{
+  Future<void> _personalisePlan(
+    BuildContext context,
+    Plan plan,
+    bool isResuming,
+  ) async {
     final result = await showModalBottomSheet(
       isScrollControlled: true,
       context: context,
       builder: (ctx) {
         return Padding(
           padding: const EdgeInsets.all(20.0),
-          child: PlanPersonalization(plan: plan),
+          child: PlanPersonalization(
+            plan: plan,
+            isDayOrderDisabled: isResuming,
+          ),
         );
       },
     );
@@ -27,10 +34,6 @@ class PlanChooserScreen extends StatelessWidget {
     }
   }
 
-  void _resumePlan(BuildContext context,Plan plan){
-    context.read<PlanProvider>().startPlan(plan, personalization)
-    
-  }
   @override
   Widget build(BuildContext context) {
     final isarService = context.read<IsarService>();
@@ -67,11 +70,13 @@ class PlanChooserScreen extends StatelessWidget {
                       );
                     }
                     final bool isResuming = sessionSnapshot.data ?? false;
-                    
+
                     return PlanCard(
                       plan: plan,
                       isResuming: isResuming,
-                      onTap: ,
+                      onTap: () async {
+                        await _personalisePlan(context, plan, isResuming);
+                      },
                     );
                   },
                 );
