@@ -2,8 +2,10 @@ import 'dart:io';
 
 import 'package:fitness_app/providers/isar_service.dart';
 import "package:fitness_app/providers/plan_provider.dart";
+import 'package:fitness_app/providers/theme_provider.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/screens/main_scaffold.dart';
+import 'package:fitness_app/utils/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider_android/path_provider_android.dart';
 import 'package:path_provider_linux/path_provider_linux.dart';
@@ -32,8 +34,12 @@ Future<void> main() async {
           create: (context) => PlanProvider(context.read<IsarService>()),
         ),
         ChangeNotifierProvider(
-          create: (context) => WorkoutProvider(context.read<IsarService>()),
+          create: (context) => WorkoutProvider(
+            context.read<IsarService>(),
+            context.read<PlanProvider>(),
+          ),
         ),
+        ChangeNotifierProvider<ThemeProvider>.value(value: ThemeProvider()),
       ],
       child: MainApp(),
     ),
@@ -45,13 +51,15 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final isPink = themeProvider.appStyle == AppStyle.pink;
+
     return MaterialApp(
       title: 'Fitness App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.lightBlueAccent),
-        useMaterial3: true,
-      ),
-      home: MainScaffold(),
+      theme: isPink ? AppTheme.getPinkLight() : AppTheme.getBlueLight(),
+      darkTheme: isPink ? AppTheme.getPinkDark() : AppTheme.getBlueDark(),
+      themeMode: themeProvider.themeMode,
+      home: const MainScaffold(),
       debugShowCheckedModeBanner: false,
     );
   }

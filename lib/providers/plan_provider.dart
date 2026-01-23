@@ -8,13 +8,13 @@ import 'package:intl/intl.dart';
 import '../models/plan.dart';
 import 'isar_service.dart';
 
+//TODO refactor so when Plan Session is terminated it only is accessible as an history object
 class PlanProvider extends ChangeNotifier {
   final IsarService _isarService;
 
   // -- STATE VARIABLES --
   Plan? _activePlan;
   PlanSession? activeSession;
-  PlanSession? sessionInView;
   bool isLoading = true;
   List<PlanDay> daysForWeek = [];
   WeekSelectionResult? currentWeekSelection;
@@ -61,7 +61,6 @@ class PlanProvider extends ChangeNotifier {
     await _isarService.createOrSaveSession(activeSession!);
     activeSession = null;
     _activePlan = null;
-    sessionInView = null;
     currentWeekSelection = null;
     daysForWeek = [];
     isLoading = false;
@@ -72,7 +71,7 @@ class PlanProvider extends ChangeNotifier {
     Plan plan,
     PlanPersonalizationResult personalization,
   ) async {
-    //TODO Implement workout skip logic depending on personalization.selectedStartDate, and implement reordering of PLANDAYS
+    //TODO Implement workout skip logic depending on personalization.selectedStartDate
     isLoading = true;
     notifyListeners();
 
@@ -86,11 +85,13 @@ class PlanProvider extends ChangeNotifier {
       PlanSession newSession = PlanSession()
         ..plan.value = plan
         ..startTime = personalization.firstWeekStart
-        ..lastCompletedDay = previousSession?.lastCompletedDay ?? 0
         ..lastCompletedAbsoluteWeek =
             previousSession?.lastCompletedAbsoluteWeek ?? 0;
 
       activeSession = await _isarService.createOrSaveSession(newSession);
+    }
+    if (personalization.dayOrder != null) {
+      await _isarService.personalisePlan(plan, personalization.dayOrder!);
     }
 
     await _loadDataForActiveSession();
@@ -99,6 +100,7 @@ class PlanProvider extends ChangeNotifier {
   }
 
   Future<void> _updateForWeek(int totalWeek) async {
+    //TODO Implement creating of workouts after accessing a week?
     if (_activePlan == null || activeSession == null) return;
 
     final dateInSelectedWeek = activeSession!.startTime.add(
@@ -119,11 +121,9 @@ class PlanProvider extends ChangeNotifier {
       startOfWeek: startOfWeek,
       endOfWeek: endOfWeek,
     );
-    await _resolveSessionForWeek();
   }
 
   Future<void> _fetchDaysForWeek(int absoluteWeekNumber) async {
-    //TODO remake for usage of dates and counting of absoluteWeek via dates and foreign sessions!
     if (_activePlan != null && absoluteWeekNumber >= 1) {
       int weekNumber = weekFromAbsoluteWeek(
         absoluteWeekNumber,
@@ -133,15 +133,6 @@ class PlanProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> _resolveSessionForWeek() async {
-    if (currentWeekSelection == null) return;
-    final foundSession = await _isarService.findSessionByDateRange(
-      currentWeekSelection!.startOfWeek,
-      currentWeekSelection!.endOfWeek,
-    );
-    sessionInView = foundSession;
-  }
-
   void goToAnyWeek(int week) async {
     await _updateForWeek(week);
     await _fetchDaysForWeek(week);
@@ -149,6 +140,7 @@ class PlanProvider extends ChangeNotifier {
   }
 
   void goToNextWeek() async {
+    //TODO ADD future limiters
     if (currentWeekSelection != null && _activePlan != null) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
       await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
@@ -157,7 +149,9 @@ class PlanProvider extends ChangeNotifier {
   }
 
   void goToPreviousWeek() async {
-    if (currentWeekSelection != null && _activePlan != null) {
+    //TODO ADD Limiter for going into past further than PlanStartDate
+    if (currentWeekSelection != null &&
+        currentWeekSelection!.selectedTotalWeek != 1) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
       await _fetchDaysForWeek(currentWeekSelection!.selectedTotalWeek);
       notifyListeners();
@@ -180,11 +174,6 @@ class PlanProvider extends ChangeNotifier {
     );
   }
 
-  bool get isViewingForeignSession =>
-      sessionInView != null &&
-      activeSession != null &&
-      sessionInView!.plan.value?.id != activeSession!.plan.value?.id;
-
   String get formattedDateRange {
     if (currentWeekSelection == null) {
       return 'Loading date...';
@@ -194,7 +183,6 @@ class PlanProvider extends ChangeNotifier {
 
     final start = currentWeekSelection!.startOfWeek;
     final end = currentWeekSelection!.endOfWeek;
-    // Format both dates and combine them into a single string.
     return '${formatter.format(start)} - ${formatter.format(end)}';
   }
 

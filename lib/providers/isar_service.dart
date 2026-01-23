@@ -175,7 +175,7 @@ class IsarService {
     return isar.plans.where().findFirst();
   }
 
-  Future<void> personalizePlan(
+  Future<void> personalisePlan(
     Plan plan,
     Map<String, int>
     dayOrderMapping, // always contains data like day.name:[1-7]
@@ -313,7 +313,7 @@ class IsarService {
 
   Future<void> saveWorkoutSet(WorkoutSet workoutSet) async {
     final isar = await db;
-    isar.writeTxn(() async {
+    await isar.writeTxn(() async {
       await isar.workoutSets.put(workoutSet);
       await workoutSet.workout.save();
       await workoutSet.exercise.save();
@@ -338,6 +338,47 @@ class IsarService {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.workoutSets.putAll(sets);
+    });
+  }
+
+  Future<void> markExerciseAsSkipped(List<WorkoutSet> sets) async {
+    final isar = await db;
+    WorkoutSet firstSet = sets.first;
+    firstSet.isSkipped = true;
+    await isar.writeTxn(() async {
+      await isar.workoutSets.put(firstSet);
+      if (sets.length > 1) {
+        final idsToDelete = sets.sublist(1).map((s) => s.id).toList();
+        await isar.workoutSets.deleteAll(idsToDelete);
+      }
+    });
+  }
+
+  Future<void> markSetAsSkipped(WorkoutSet set) async {
+    final isar = await db;
+    set.isSkipped = true;
+    set.weight = -1;
+    set.reps = -1;
+    await isar.writeTxn(() async {
+      await isar.workoutSets.put(set);
+    });
+  }
+
+  Future<void> deleteWorkoutSet(
+    Workout activeWorkout,
+    int setNumber,
+    PlanDayExercise pde,
+  ) async {
+    final isar = await db;
+    await isar.writeTxn(() async {
+      await isar.workoutSets
+          .filter()
+          .workout((q) => q.idEqualTo(activeWorkout.id))
+          .and()
+          .setNumberEqualTo(setNumber)
+          .and()
+          .exercise((q) => q.idEqualTo(pde.id))
+          .deleteAll();
     });
   }
 

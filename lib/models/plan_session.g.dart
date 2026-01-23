@@ -27,13 +27,8 @@ const PlanSessionSchema = CollectionSchema(
       name: r'lastCompletedAbsoluteWeek',
       type: IsarType.long,
     ),
-    r'lastCompletedDay': PropertySchema(
-      id: 2,
-      name: r'lastCompletedDay',
-      type: IsarType.long,
-    ),
     r'startTime': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'startTime',
       type: IsarType.dateTime,
     ),
@@ -78,8 +73,7 @@ void _planSessionSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.endDate);
   writer.writeLong(offsets[1], object.lastCompletedAbsoluteWeek);
-  writer.writeLong(offsets[2], object.lastCompletedDay);
-  writer.writeDateTime(offsets[3], object.startTime);
+  writer.writeDateTime(offsets[2], object.startTime);
 }
 
 PlanSession _planSessionDeserialize(
@@ -92,8 +86,7 @@ PlanSession _planSessionDeserialize(
   object.endDate = reader.readDateTimeOrNull(offsets[0]);
   object.id = id;
   object.lastCompletedAbsoluteWeek = reader.readLong(offsets[1]);
-  object.lastCompletedDay = reader.readLong(offsets[2]);
-  object.startTime = reader.readDateTime(offsets[3]);
+  object.startTime = reader.readDateTime(offsets[2]);
   return object;
 }
 
@@ -109,8 +102,6 @@ P _planSessionDeserializeProp<P>(
     case 1:
       return (reader.readLong(offset)) as P;
     case 2:
-      return (reader.readLong(offset)) as P;
-    case 3:
       return (reader.readDateTime(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -411,61 +402,6 @@ extension PlanSessionQueryFilter
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastCompletedDayEqualTo(int value) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'lastCompletedDay', value: value),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastCompletedDayGreaterThan(int value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'lastCompletedDay',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastCompletedDayLessThan(int value, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'lastCompletedDay',
-          value: value,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  lastCompletedDayBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'lastCompletedDay',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
   startTimeEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -569,20 +505,6 @@ extension PlanSessionQuerySortBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  sortByLastCompletedDay() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastCompletedDay', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  sortByLastCompletedDayDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastCompletedDay', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
@@ -636,20 +558,6 @@ extension PlanSessionQuerySortThenBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  thenByLastCompletedDay() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastCompletedDay', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy>
-  thenByLastCompletedDayDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'lastCompletedDay', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'startTime', Sort.asc);
@@ -678,13 +586,6 @@ extension PlanSessionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QDistinct>
-  distinctByLastCompletedDay() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'lastCompletedDay');
-    });
-  }
-
   QueryBuilder<PlanSession, PlanSession, QDistinct> distinctByStartTime() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'startTime');
@@ -710,12 +611,6 @@ extension PlanSessionQueryProperty
   lastCompletedAbsoluteWeekProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'lastCompletedAbsoluteWeek');
-    });
-  }
-
-  QueryBuilder<PlanSession, int, QQueryOperations> lastCompletedDayProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'lastCompletedDay');
     });
   }
 

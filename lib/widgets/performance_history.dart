@@ -1,5 +1,4 @@
 import 'package:fitness_app/models/workout_set.dart';
-import 'package:fitness_app/utils/theme.dart';
 import 'package:flutter/material.dart';
 
 class PerformanceHistory extends StatelessWidget {
@@ -16,11 +15,11 @@ class PerformanceHistory extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (loggedSets.isEmpty) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(8.0),
         child: Text(
           "No performance data available.",
-          style: AppTextStyles.description,
+          style: Theme.of(context).textTheme.labelMedium,
         ),
       );
     }
@@ -35,15 +34,24 @@ class PerformanceHistory extends StatelessWidget {
             children: [
               Expanded(
                 flex: 1,
-                child: Text("Set", style: AppTextStyles.listTitle),
+                child: Text(
+                  "Set",
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
               Expanded(
                 flex: 2,
-                child: Text("Weight (kg)", style: AppTextStyles.listTitle),
+                child: Text(
+                  "Weight (kg)",
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
               Expanded(
                 flex: 2,
-                child: Text("Reps", style: AppTextStyles.listTitle),
+                child: Text(
+                  "Reps",
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
               ),
             ],
           ),
@@ -65,21 +73,21 @@ class PerformanceHistory extends StatelessWidget {
                     flex: 1,
                     child: Text(
                       set.setNumber.toString(),
-                      style: AppTextStyles.pageMainTitle,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Expanded(
                     flex: 2,
                     child: Text(
                       set.weight.toString(),
-                      style: AppTextStyles.description,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                   Expanded(
                     flex: 2,
                     child: Text(
                       set.reps.toString(),
-                      style: AppTextStyles.description,
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ),
                 ],

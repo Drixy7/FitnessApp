@@ -1,7 +1,7 @@
 import 'package:fitness_app/models/plan_day.dart';
-import 'package:fitness_app/utils/theme.dart';
 import 'package:flutter/material.dart';
 
+//TODO Make it more wide/ maybe implement image?
 class TrainingCard extends StatelessWidget {
   final PlanDay day;
   final VoidCallback onTap;
@@ -13,10 +13,10 @@ class TrainingCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.fitness_center, color: Colors.blueAccent),
-        title: Text(day.name, style: AppTextStyles.listTitle),
+        title: Text(day.name, style: Theme.of(context).textTheme.headlineSmall),
         subtitle: Text(
           "Week ${day.weekNumber}",
-          style: AppTextStyles.listSubtitle,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16),
         onTap: onTap,

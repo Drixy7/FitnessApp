@@ -1,5 +1,4 @@
 import 'package:fitness_app/models/plan.dart';
-import 'package:fitness_app/utils/theme.dart'; // Assuming you have AppTextStyles here
 import 'package:flutter/material.dart';
 
 class PlanCard extends StatelessWidget {
@@ -24,7 +23,10 @@ class PlanCard extends StatelessWidget {
           Icons.fitness_center,
           color: Theme.of(context).primaryColor,
         ),
-        title: Text(plan.name, style: AppTextStyles.listTitle),
+        title: Text(
+          plan.name,
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
         subtitle: Text(
           plan.description ?? "No description available",
           maxLines: 1,
@@ -42,9 +44,18 @@ class PlanCard extends StatelessWidget {
                     _buildInfoColumn(
                       "${plan.weeksPerCycle} Weeks",
                       "Per Cycle",
+                      context,
                     ),
-                    _buildInfoColumn("${plan.daysPerWeek} Days", "Per Week"),
-                    _buildInfoColumn(plan.difficulty.name, "Difficulty"),
+                    _buildInfoColumn(
+                      "${plan.daysPerWeek} Days",
+                      "Per Week",
+                      context,
+                    ),
+                    _buildInfoColumn(
+                      plan.difficulty.name,
+                      "Difficulty",
+                      context,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -65,12 +76,12 @@ class PlanCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoColumn(String value, String label) {
+  Widget _buildInfoColumn(String value, String label, BuildContext context) {
     return Column(
       children: [
-        Text(value, style: AppTextStyles.listTitle),
+        Text(value, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 4),
-        Text(label, style: AppTextStyles.description),
+        Text(label, style: Theme.of(context).textTheme.bodyLarge),
       ],
     );
   }

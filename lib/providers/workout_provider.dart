@@ -3,18 +3,21 @@ import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/models/workout_set.dart';
 import 'package:fitness_app/providers/isar_service.dart';
+import 'package:fitness_app/providers/plan_provider.dart';
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 
 class WorkoutProvider extends ChangeNotifier {
   final IsarService _isarService;
+  final PlanProvider _planProvider;
   // -- State Variables --
   Workout? activeWorkout;
   Workout? lastWorkout;
   Workout? lastCycleWorkout;
 
   bool get isWorkoutActive => activeWorkout != null;
-  Map<int, List<WorkoutSet>> loggedSets = {};
+  Map<int, List<WorkoutSet>> loggedSets =
+      {}; // Int represents orderIndex of pde
   Map<int, List<WorkoutSet>> lastWorkoutSets = {};
   Map<int, List<WorkoutSet>> lastCycleWorkoutSets = {};
   List<PlanDayExercise> workoutExercises = [];
@@ -22,7 +25,7 @@ class WorkoutProvider extends ChangeNotifier {
   DateTime? weekRangeStart;
   DateTime? weekRangeEnd;
 
-  WorkoutProvider(this._isarService);
+  WorkoutProvider(this._isarService, this._planProvider);
 
   // --- Public Methods ---
   Future<void> getOrCreateWorkoutForDay(
@@ -83,49 +86,79 @@ class WorkoutProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> logSetForExercise(
-    //Open for smarter refactoring
+  Future<void> logSetsForExercise(
     int exerciseOrder,
     Map<int, (double, int)> workoutSets,
+    List<int?> skippedSets,
   ) async {
     if (!isWorkoutActive) return;
     List<WorkoutSet>? setsForExercise = loggedSets[exerciseOrder];
     if (setsForExercise == null) return;
 
+    if (skippedSets.length == workoutSets.length) {
+      await _isarService.markExerciseAsSkipped(setsForExercise);
+      return;
+    }
+
     for (final set in setsForExercise) {
       final performance = workoutSets[set.setNumber];
-      if (performance != null) {
+      if (performance != null && !skippedSets.contains(set.setNumber)) {
         set.weight = performance.$1;
         set.reps = performance.$2;
+      } else {
+        await _isarService.markSetAsSkipped(set);
       }
     }
     await _isarService.updateWorkoutSets(setsForExercise);
   }
 
-  Future<void> addSetToWorkout({
+  Future<void> addSetToActiveWorkout({
     required PlanDayExercise planDayExercise,
-    required double weight,
-    required int reps,
     required int setNumber,
+    required int reps,
+    required double weight,
   }) async {
     if (!isWorkoutActive) return;
     final newSet = WorkoutSet()
-      ..reps = reps
-      ..weight = weight
       ..setNumber = setNumber
+      ..weight = weight
+      ..reps = reps
       ..exercise.value = planDayExercise
       ..workout.value = activeWorkout;
+    if (loggedSets[planDayExercise.orderIndex] == null) {
+      throw Exception();
+    }
+    loggedSets[planDayExercise.orderIndex]?.add(newSet);
     await _isarService.saveWorkoutSet(newSet);
-    await fetchSetsForExercise(planDayExercise.id);
+    await fetchSetsForExercise(planDayExercise);
+    notifyListeners();
   }
 
-  Future<void> fetchSetsForExercise(int exerciseId) async {
+  Future<void> removeSetFromWorkout({
+    required PlanDayExercise planDayExercise,
+    required int setNumber,
+  }) async {
+    if (!isWorkoutActive || loggedSets[planDayExercise.orderIndex] == null) {
+      throw Exception();
+    }
+    loggedSets[planDayExercise.orderIndex]!.removeWhere(
+      (workoutSet) => workoutSet.setNumber == setNumber,
+    );
+    await _isarService.deleteWorkoutSet(
+      activeWorkout!,
+      setNumber,
+      planDayExercise,
+    );
+    notifyListeners();
+  }
+
+  Future<void> fetchSetsForExercise(PlanDayExercise exercise) async {
     if (!isWorkoutActive) return;
     final sets = await _isarService.getSetsForExercise(
-      exerciseId,
+      exercise.id,
       activeWorkout!.id,
     );
-    loggedSets[exerciseId] = sets;
+    loggedSets[exercise.orderIndex] = sets;
     notifyListeners();
   }
 
@@ -197,8 +230,11 @@ class WorkoutProvider extends ChangeNotifier {
     return result;
   }
 
-  Future<void> finishWorkout() async {
+  void finishWorkout() {
     if (!isWorkoutActive) return;
+    //TODO FIX THE LAST COMPLETED WEEK!!!
+    _planProvider.activeSession!.lastCompletedAbsoluteWeek =
+        activeWorkout!.planDay.value?.weekNumber ?? -1;
     activeWorkout = null;
     lastWorkout = null;
     lastCycleWorkout = null;

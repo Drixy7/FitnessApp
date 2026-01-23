@@ -4,8 +4,6 @@ import 'package:fitness_app/widgets/pickers/week_chooser_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../utils/theme.dart';
-
 class StatusCard extends StatelessWidget {
   const StatusCard({super.key});
 
@@ -20,7 +18,7 @@ class StatusCard extends StatelessWidget {
             context: context,
             builder: (ctx) {
               return Padding(
-                padding: const EdgeInsets.all(20.0),
+                padding: const EdgeInsets.all(15.0),
                 child: WeekChooserView(
                   firstAvailableDate: planProvider.activeSession!.startTime,
                   initialWeekSelection: planProvider.currentWeekSelection,
@@ -35,9 +33,8 @@ class StatusCard extends StatelessWidget {
     }
 
     return Card(
-      margin: EdgeInsetsGeometry.directional(top: 30),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(20.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -55,15 +52,18 @@ class StatusCard extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          "WEEK ${planProvider.isViewingForeignSession ? "unknown" : planProvider.currentWeekInCycle}",
-                          style: AppTextStyles.pageMainTitle,
+                          "WEEK ${planProvider.currentWeekInCycle}",
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 4),
-                        Text(planProvider.formattedDateRange),
+                        Text(
+                          planProvider.formattedDateRange,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                         const SizedBox(height: 4),
                         Text(
-                          "Cycle ${planProvider.isViewingForeignSession ? "unknown" : planProvider.currentCycle}",
-                          style: AppTextStyles.pageSubTitle,
+                          "Cycle ${planProvider.currentCycle}",
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                       ],
                     ),
@@ -78,10 +78,10 @@ class StatusCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               planProvider.activeSession?.plan.value?.name ?? 'Loading Plan...',
-              style: AppTextStyles.listTitle,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ],
         ),

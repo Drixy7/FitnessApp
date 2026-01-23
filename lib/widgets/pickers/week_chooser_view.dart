@@ -2,6 +2,7 @@ import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+//TODO Make the week selection prettier and more easily readable
 class WeekChooserView extends StatefulWidget {
   final DateTime firstAvailableDate;
   final DateTime? lastAvailableDate;

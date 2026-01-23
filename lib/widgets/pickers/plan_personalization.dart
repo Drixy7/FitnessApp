@@ -1,6 +1,5 @@
 import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/utils/datatypes.dart';
-import 'package:fitness_app/utils/theme.dart';
 import 'package:fitness_app/widgets/pickers/week_chooser_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -153,13 +152,16 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("Personalize Your Plan", style: AppTextStyles.pageMainTitle),
+          Text(
+            "Personalize Your Plan",
+            style: Theme.of(context).textTheme.headlineMedium,
+          ),
           const Divider(),
           const SizedBox(height: 24),
 
           Text(
             "When will you start your first workout?",
-            style: AppTextStyles.listTitle,
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           InkWell(
@@ -175,7 +177,7 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
                 children: [
                   Text(
                     DateFormat('EEEE, dd.MM.yyyy').format(_selectedStartDate),
-                    style: AppTextStyles.description,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const Icon(Icons.calendar_month),
                 ],
@@ -186,7 +188,10 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
 
           if (!widget.isDayOrderDisabled) ...[
             // --- DAY ORDER PERSONALIZATION ---
-            Text("Personalize workout days", style: AppTextStyles.listTitle),
+            Text(
+              "Personalize workout days",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             ..._dayOrder.entries.map((entry) {
               String dayName = entry.key;
@@ -197,7 +202,10 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text(dayName, style: AppTextStyles.listTitle),
+                      child: Text(
+                        dayName,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
                     ),
                     DropdownButton<int>(
                       value: currentWeekDay,
