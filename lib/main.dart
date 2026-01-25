@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:fitness_app/providers/isar_service.dart';
+import 'package:fitness_app/providers/navigation_provider.dart';
 import "package:fitness_app/providers/plan_provider.dart";
 import 'package:fitness_app/providers/theme_provider.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
@@ -40,6 +41,9 @@ Future<void> main() async {
           ),
         ),
         ChangeNotifierProvider<ThemeProvider>.value(value: ThemeProvider()),
+        ChangeNotifierProvider<NavigationProvider>.value(
+          value: NavigationProvider(),
+        ),
       ],
       child: MainApp(),
     ),

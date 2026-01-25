@@ -95,11 +95,10 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
     });
   }
 
-  // --- HELPER METHOD TO SHOW THE DATE PICKER ---
   Future<void> _selectStartDate(BuildContext context) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final firstDate = today;
+    final firstDate = today; //TODO REFACTOR FOR LIMIT OF OVERLAPPING SESSIONS.
     final daysUntilEndOfWeek = 7 - today.weekday;
     final lastDate = today.add(Duration(days: daysUntilEndOfWeek + 7));
 

@@ -15,18 +15,16 @@ class PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textStyle = Theme.of(context).textTheme;
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      borderOnForeground: true,
+      color: colors.primaryContainer,
       child: ExpansionTile(
-        leading: Icon(
-          Icons.fitness_center,
-          color: Theme.of(context).primaryColor,
-        ),
-        title: Text(
-          plan.name,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
+        leading: Icon(Icons.fitness_center, color: colors.primary),
+        title: Text(plan.name, style: textStyle.headlineSmall),
         subtitle: Text(
           plan.description ?? "No description available",
           maxLines: 1,
@@ -35,7 +33,7 @@ class PlanCard extends StatelessWidget {
 
         children: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: Column(
               children: [
                 Row(
@@ -44,16 +42,22 @@ class PlanCard extends StatelessWidget {
                     _buildInfoColumn(
                       "${plan.weeksPerCycle} Weeks",
                       "Per Cycle",
+                      textStyle,
+                      colors,
                       context,
                     ),
                     _buildInfoColumn(
                       "${plan.daysPerWeek} Days",
                       "Per Week",
+                      textStyle,
+                      colors,
                       context,
                     ),
                     _buildInfoColumn(
                       plan.difficulty.name,
                       "Difficulty",
+                      textStyle,
+                      colors,
                       context,
                     ),
                   ],
@@ -76,12 +80,35 @@ class PlanCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoColumn(String value, String label, BuildContext context) {
+  Widget _buildInfoColumn(
+    String value,
+    String label,
+    TextTheme textStyle,
+    ColorScheme colors,
+    BuildContext context,
+  ) {
     return Column(
       children: [
-        Text(value, style: Theme.of(context).textTheme.titleMedium),
+        Container(
+          decoration: BoxDecoration(
+            color: colors.onPrimaryContainer,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(6.0),
+            child: Text(
+              value,
+              style: textStyle.titleMedium?.copyWith(color: colors.onPrimary),
+            ),
+          ),
+        ),
         const SizedBox(height: 4),
-        Text(label, style: Theme.of(context).textTheme.bodyLarge),
+        Text(
+          label,
+          style: textStyle.bodyLarge?.copyWith(
+            color: colors.onPrimaryContainer,
+          ),
+        ),
       ],
     );
   }

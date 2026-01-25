@@ -1,3 +1,4 @@
+import 'package:fitness_app/widgets/icon_card.dart';
 import 'package:flutter/material.dart';
 
 class StatisticsScreen extends StatelessWidget {
@@ -5,6 +6,32 @@ class StatisticsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Expanded(
+              child: IconCard(
+                icon: Icons.monitor_weight_outlined,
+                label: "Body Weight Statistics",
+                leading: "Examine your body weight progress",
+                onTap: () {},
+              ),
+            ),
+            SizedBox(height: 40),
+            Expanded(
+              child: IconCard(
+                icon: Icons.fitness_center_outlined,
+                label: "Lifting Statistics",
+                leading: "Examine your progress on different plans",
+                onTap: () {},
+              ),
+            ),
+            SizedBox(height: 80),
+          ],
+        ),
+      ),
+    );
   }
 }

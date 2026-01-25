@@ -72,46 +72,82 @@ class _WeekChooserViewState extends State<WeekChooserView> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final textStyles = Theme.of(context).textTheme;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        TableCalendar(
-          firstDay: widget.firstAvailableDate,
-          lastDay:
-              widget.lastAvailableDate ??
-              widget.firstAvailableDate.add(Duration(days: 365 * 10)),
-          focusedDay: _focusedDay,
-          currentDay: DateTime.now(),
-          startingDayOfWeek: StartingDayOfWeek.monday,
-
-          calendarFormat: CalendarFormat.month,
-          headerStyle: const HeaderStyle(
-            formatButtonVisible: false,
-            titleCentered: true,
+        Container(
+          padding: const EdgeInsetsGeometry.all(10),
+          decoration: BoxDecoration(
+            color: colors.secondaryContainer,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: colors.outline),
           ),
-
-          // Selection Logic
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          rangeStartDay: _rangeStart,
-          rangeEndDay: _rangeEnd,
-          rangeSelectionMode:
-              RangeSelectionMode.enforced, // Highlights the whole range
-
-          onDaySelected: _onDaySelected,
-
-          calendarStyle: CalendarStyle(
-            rangeHighlightColor: Theme.of(context).primaryColor,
-            selectedDecoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.5),
-              shape: BoxShape.circle,
+          child: TableCalendar(
+            firstDay: widget.firstAvailableDate,
+            lastDay:
+                widget.lastAvailableDate ??
+                widget.firstAvailableDate.add(Duration(days: 365 * 10)),
+            focusedDay: _focusedDay,
+            currentDay: DateTime.now(),
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            calendarFormat: CalendarFormat.month,
+            headerStyle: HeaderStyle(
+              titleTextStyle: textStyles.headlineMedium!.copyWith(
+                color: colors.onSecondaryContainer,
+              ),
+              formatButtonVisible: false,
+              titleCentered: true,
             ),
-            rangeStartDecoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              shape: BoxShape.circle,
+
+            selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+            rangeStartDay: _rangeStart,
+            rangeEndDay: _rangeEnd,
+            rangeSelectionMode: RangeSelectionMode.enforced,
+            onDaySelected: _onDaySelected,
+            daysOfWeekHeight: 25,
+            daysOfWeekStyle: DaysOfWeekStyle(
+              weekdayStyle: textStyles.bodyLarge!,
+              weekendStyle: textStyles.bodyLarge!,
             ),
-            rangeEndDecoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              shape: BoxShape.circle,
+            calendarStyle: CalendarStyle(
+              disabledTextStyle: textStyles.labelMedium!.copyWith(
+                color: Colors.grey,
+              ),
+              weekendTextStyle: textStyles.bodyMedium!,
+              withinRangeTextStyle: textStyles.bodyMedium!.copyWith(
+                fontSize: (textStyles.bodyMedium?.fontSize)! + 2,
+              ),
+              rangeEndTextStyle: textStyles.bodyMedium!.copyWith(
+                fontSize: (textStyles.bodyMedium?.fontSize)! + 2,
+              ),
+              rangeStartTextStyle: textStyles.bodyMedium!.copyWith(
+                fontSize: (textStyles.bodyMedium?.fontSize)! + 2,
+              ),
+              selectedTextStyle: textStyles.bodyMedium!.copyWith(
+                fontSize: (textStyles.bodyMedium?.fontSize)! + 4,
+              ),
+              rangeHighlightColor: colors.tertiaryContainer,
+              selectedDecoration: BoxDecoration(
+                border: Border.all(color: colors.onTertiaryContainer, width: 3),
+                color: colors.tertiaryContainer,
+                shape: BoxShape.circle,
+              ),
+              rangeStartDecoration: BoxDecoration(
+                border: Border.all(color: colors.outline),
+                color: colors.tertiaryContainer,
+                shape: BoxShape.circle,
+              ),
+              rangeEndDecoration: BoxDecoration(
+                border: Border.all(color: colors.outline),
+                color: colors.tertiaryContainer,
+                shape: BoxShape.circle,
+              ),
+              todayDecoration: BoxDecoration(
+                color: colors.onSecondaryContainer.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
             ),
           ),
         ),

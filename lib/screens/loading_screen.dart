@@ -1,1 +1,0 @@
-/* shows loading screen with logo, dot loading process and author name -> shown if application is waiting for Database queries */

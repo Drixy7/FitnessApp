@@ -1,6 +1,6 @@
+import 'package:fitness_app/providers/navigation_provider.dart';
 import 'package:fitness_app/providers/plan_provider.dart';
 import 'package:fitness_app/providers/theme_provider.dart';
-import 'package:fitness_app/widgets/color_option.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -12,49 +12,39 @@ class SettingsScreen extends StatelessWidget {
   void _showPlanDialog(BuildContext context) {
     //Variables for dynamic show of content
     final planProvider = context.read<PlanProvider>();
-    final actionsWhenSelected = [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text("Close"),
-      ),
-      TextButton(
-        onPressed: () {
-          Navigator.pop(context);
-          context.read<PlanProvider>().endPlanSession();
-        },
-        child: const Text("I agree"),
-      ),
-    ];
-
-    final actionsNotSelected = [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text("Close"),
-      ),
-      TextButton(
-        onPressed: () =>
-            Navigator.pop(context), //TODO implement navigation provider later
-        child: const Text("Go to Plan Selection"),
-      ),
-    ];
+    final isPlanSelected = planProvider.activeSession != null;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text("Change Plan"),
         content: Text(
-          planProvider.activeSession == null
+          !isPlanSelected
               ? "You currently don't have any Plan selected."
               : "This will end your current Plan session. Are you sure you want to continue?",
         ),
-        actions: planProvider.activeSession == null
-            ? actionsNotSelected
-            : actionsWhenSelected,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (isPlanSelected) {
+                planProvider.endPlanSession();
+              }
+              context.read<NavigationProvider>().resetToHome();
+            },
+            child: Text(!isPlanSelected ? "Go to Plan Selection" : " I agree"),
+          ),
+        ],
       ),
     );
   }
 
-  void _showThemeDialog(BuildContext context, ThemeProvider themeProvider) {
+  void _showThemeDialog(BuildContext context) {
+    final themeProvider = context.read<ThemeProvider>();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -62,26 +52,30 @@ class SettingsScreen extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(
-              onPressed: () {
-                themeProvider.toggleThemeMode();
-              },
-              icon: Icon(
+            ListTile(
+              title: Text(themeProvider.isDarkMode ? "Dark" : "Light"),
+              leading: Icon(
                 themeProvider.isDarkMode ? Icons.dark_mode : Icons.light_mode,
+              ),
+              trailing: Switch(
+                value: themeProvider.isDarkMode,
+                onChanged: (value) {
+                  themeProvider.toggleThemeMode();
+                },
               ),
             ),
             SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                ColorOption(
+                _ColorOption(
                   color: Color(0xff8b4a62),
                   isSelected: themeProvider.appStyle == AppStyle.pink,
                   onTap: () => themeProvider.setAppStyle(AppStyle.pink),
                 ),
                 SizedBox(width: 20),
-                ColorOption(
-                  color: Color(0xffd6e3ff),
+                _ColorOption(
+                  color: Color(0xff415f91),
                   isSelected: themeProvider.appStyle == AppStyle.blue,
                   onTap: () => themeProvider.setAppStyle(AppStyle.blue),
                 ),
@@ -115,7 +109,6 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
     return Scaffold(
       appBar: AppBar(title: const Text("Settings"), centerTitle: true),
       body: ListView(
@@ -136,7 +129,7 @@ class SettingsScreen extends StatelessWidget {
             title: const Text("Change Theme"),
             subtitle: const Text("Switch between light and dark mode"),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => _showThemeDialog(context, themeProvider),
+            onTap: () => _showThemeDialog(context),
           ),
           const Divider(height: 1),
 
@@ -149,6 +142,49 @@ class SettingsScreen extends StatelessWidget {
             onTap: () => _showAboutDialog(context),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ColorOption extends StatelessWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ColorOption({
+    required this.color,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.onPrimary
+                : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: isSelected
+            ? const Icon(Icons.check, color: Colors.white, size: 28)
+            : null,
       ),
     );
   }
