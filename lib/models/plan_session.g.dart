@@ -27,9 +27,9 @@ const PlanSessionSchema = CollectionSchema(
       name: r'lastCompletedAbsoluteWeek',
       type: IsarType.long,
     ),
-    r'startTime': PropertySchema(
+    r'startDate': PropertySchema(
       id: 2,
-      name: r'startTime',
+      name: r'startDate',
       type: IsarType.dateTime,
     ),
   },
@@ -402,21 +402,21 @@ extension PlanSessionQueryFilter
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  startTimeEqualTo(DateTime value) {
+  startDateEqualTo(DateTime value) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'startTime', value: value),
+        FilterCondition.equalTo(property: r'startDate', value: value),
       );
     });
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  startTimeGreaterThan(DateTime value, {bool include = false}) {
+  startDateGreaterThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(
           include: include,
-          property: r'startTime',
+          property: r'startDate',
           value: value,
         ),
       );
@@ -424,12 +424,12 @@ extension PlanSessionQueryFilter
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  startTimeLessThan(DateTime value, {bool include = false}) {
+  startDateLessThan(DateTime value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.lessThan(
           include: include,
-          property: r'startTime',
+          property: r'startDate',
           value: value,
         ),
       );
@@ -437,7 +437,7 @@ extension PlanSessionQueryFilter
   }
 
   QueryBuilder<PlanSession, PlanSession, QAfterFilterCondition>
-  startTimeBetween(
+  startDateBetween(
     DateTime lower,
     DateTime upper, {
     bool includeLower = true,
@@ -446,7 +446,7 @@ extension PlanSessionQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.between(
-          property: r'startTime',
+          property: r'startDate',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -505,15 +505,15 @@ extension PlanSessionQuerySortBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.asc);
+      return query.addSortBy(r'startDate', Sort.asc);
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartTimeDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> sortByStartDateDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.desc);
+      return query.addSortBy(r'startDate', Sort.desc);
     });
   }
 }
@@ -558,15 +558,15 @@ extension PlanSessionQuerySortThenBy
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.asc);
+      return query.addSortBy(r'startDate', Sort.asc);
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartTimeDesc() {
+  QueryBuilder<PlanSession, PlanSession, QAfterSortBy> thenByStartDateDesc() {
     return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'startTime', Sort.desc);
+      return query.addSortBy(r'startDate', Sort.desc);
     });
   }
 }
@@ -586,9 +586,9 @@ extension PlanSessionQueryWhereDistinct
     });
   }
 
-  QueryBuilder<PlanSession, PlanSession, QDistinct> distinctByStartTime() {
+  QueryBuilder<PlanSession, PlanSession, QDistinct> distinctByStartDate() {
     return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'startTime');
+      return query.addDistinctBy(r'startDate');
     });
   }
 }
@@ -614,9 +614,9 @@ extension PlanSessionQueryProperty
     });
   }
 
-  QueryBuilder<PlanSession, DateTime, QQueryOperations> startTimeProperty() {
+  QueryBuilder<PlanSession, DateTime, QQueryOperations> startDateProperty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'startTime');
+      return query.addPropertyName(r'startDate');
     });
   }
 }

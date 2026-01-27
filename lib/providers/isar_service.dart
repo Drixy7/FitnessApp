@@ -247,7 +247,7 @@ class IsarService {
     final isar = await db;
     return await isar.planSessions
         .filter()
-        .startTimeLessThan(end)
+        .startDateLessThan(end)
         .and()
         .group(
           (q) => q.endDateIsNull().or().endDateGreaterThan(
@@ -366,7 +366,7 @@ class IsarService {
         .findAll();
   }
 
-  Future<void> updateWorkoutSets(List<WorkoutSet> sets) async {
+  Future<void> createWorkoutSets(List<WorkoutSet> sets) async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.workoutSets.putAll(sets);

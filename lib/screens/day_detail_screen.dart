@@ -5,8 +5,8 @@ import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/screens/workout_set_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fitness_app/widgets/pickers/bodyweight_logger.dart';
 
+//TODO SHOULD REACT IF EXERCISE IS MARKED AS SKIPPED AND WOULDNT LET USER ACCESS IT UNLESS HE REVERSE THE SKIP + IMPLEMENT SKIP BUTTON + MAKE WIDGET THAT SHOWS THE EXERCISE
 // This is the screen we will navigate to.
 class DayDetailScreen extends StatelessWidget {
   const DayDetailScreen({super.key});
@@ -16,8 +16,7 @@ class DayDetailScreen extends StatelessWidget {
     final workoutProvider = context.watch<WorkoutProvider>();
 
     if (!workoutProvider.isWorkoutActive) {
-      return Scaffold(
-      );
+      return Scaffold();
     }
 
     final activeWorkout = workoutProvider.activeWorkout!;

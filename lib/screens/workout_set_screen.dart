@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import '../models/workout_set.dart'; // Needed for input formatters
 
 // 1. Convert to a StatefulWidget to manage the TextControllers
+
 class WorkoutSetScreen extends StatefulWidget {
   final PlanDayExercise planDayExercise;
   const WorkoutSetScreen({super.key, required this.planDayExercise});
@@ -55,7 +56,7 @@ class _WorkoutSetScreenState extends State<WorkoutSetScreen> {
 
   Future<void> _addNewSet() async {
     final workoutProvider = context.read<WorkoutProvider>();
-    await workoutProvider.addSetToActiveWorkout(
+    workoutProvider.addSetToActiveWorkout(
       planDayExercise: widget.planDayExercise,
       setNumber: _weightControllers.length + 1,
       reps: 0,
@@ -100,7 +101,7 @@ class _WorkoutSetScreenState extends State<WorkoutSetScreen> {
     if (!isConfirmed) {
       return false;
     }
-    await workoutProvider.removeSetFromWorkout(
+    workoutProvider.removeSetFromWorkout(
       planDayExercise: widget.planDayExercise,
       setNumber: index + 1,
     );

@@ -18,12 +18,13 @@ const WorkoutSchema = CollectionSchema(
   id: 1535508263686820971,
   properties: {
     r'date': PropertySchema(id: 0, name: r'date', type: IsarType.dateTime),
-    r'isSkipped': PropertySchema(
-      id: 1,
-      name: r'isSkipped',
-      type: IsarType.bool,
+    r'note': PropertySchema(id: 1, name: r'note', type: IsarType.string),
+    r'status': PropertySchema(
+      id: 2,
+      name: r'status',
+      type: IsarType.byte,
+      enumMap: _WorkoutstatusEnumValueMap,
     ),
-    r'note': PropertySchema(id: 2, name: r'note', type: IsarType.string),
   },
 
   estimateSize: _workoutEstimateSize,
@@ -43,6 +44,12 @@ const WorkoutSchema = CollectionSchema(
       id: -6164758355286937234,
       name: r'planDay',
       target: r'PlanDay',
+      single: true,
+    ),
+    r'planSession': LinkSchema(
+      id: -998403547918968460,
+      name: r'planSession',
+      target: r'PlanSession',
       single: true,
     ),
   },
@@ -76,8 +83,8 @@ void _workoutSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.date);
-  writer.writeBool(offsets[1], object.isSkipped);
-  writer.writeString(offsets[2], object.note);
+  writer.writeString(offsets[1], object.note);
+  writer.writeByte(offsets[2], object.status.index);
 }
 
 Workout _workoutDeserialize(
@@ -89,8 +96,10 @@ Workout _workoutDeserialize(
   final object = Workout();
   object.date = reader.readDateTime(offsets[0]);
   object.id = id;
-  object.isSkipped = reader.readBool(offsets[1]);
-  object.note = reader.readStringOrNull(offsets[2]);
+  object.note = reader.readStringOrNull(offsets[1]);
+  object.status =
+      _WorkoutstatusValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+      WorkoutStatus.planned;
   return object;
 }
 
@@ -104,26 +113,47 @@ P _workoutDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readBool(offset)) as P;
-    case 2:
       return (reader.readStringOrNull(offset)) as P;
+    case 2:
+      return (_WorkoutstatusValueEnumMap[reader.readByteOrNull(offset)] ??
+              WorkoutStatus.planned)
+          as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
 }
+
+const _WorkoutstatusEnumValueMap = {
+  'planned': 0,
+  'inProgress': 1,
+  'completed': 2,
+  'skipped': 3,
+};
+const _WorkoutstatusValueEnumMap = {
+  0: WorkoutStatus.planned,
+  1: WorkoutStatus.inProgress,
+  2: WorkoutStatus.completed,
+  3: WorkoutStatus.skipped,
+};
 
 Id _workoutGetId(Workout object) {
   return object.id;
 }
 
 List<IsarLinkBase<dynamic>> _workoutGetLinks(Workout object) {
-  return [object.sets, object.planDay];
+  return [object.sets, object.planDay, object.planSession];
 }
 
 void _workoutAttach(IsarCollection<dynamic> col, Id id, Workout object) {
   object.id = id;
   object.sets.attach(col, col.isar.collection<WorkoutSet>(), r'sets', id);
   object.planDay.attach(col, col.isar.collection<PlanDay>(), r'planDay', id);
+  object.planSession.attach(
+    col,
+    col.isar.collection<PlanSession>(),
+    r'planSession',
+    id,
+  );
 }
 
 extension WorkoutQueryWhereSort on QueryBuilder<Workout, Workout, QWhere> {
@@ -322,16 +352,6 @@ extension WorkoutQueryFilter
     });
   }
 
-  QueryBuilder<Workout, Workout, QAfterFilterCondition> isSkippedEqualTo(
-    bool value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'isSkipped', value: value),
-      );
-    });
-  }
-
   QueryBuilder<Workout, Workout, QAfterFilterCondition> noteIsNull() {
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
@@ -493,6 +513,65 @@ extension WorkoutQueryFilter
       );
     });
   }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> statusEqualTo(
+    WorkoutStatus value,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'status', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> statusGreaterThan(
+    WorkoutStatus value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'status',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> statusLessThan(
+    WorkoutStatus value, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'status',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> statusBetween(
+    WorkoutStatus lower,
+    WorkoutStatus upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'status',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
 }
 
 extension WorkoutQueryObject
@@ -576,6 +655,20 @@ extension WorkoutQueryLinks
       return query.linkLength(r'planDay', 0, true, 0, true);
     });
   }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> planSession(
+    FilterQuery<PlanSession> q,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'planSession');
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition> planSessionIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'planSession', 0, true, 0, true);
+    });
+  }
 }
 
 extension WorkoutQuerySortBy on QueryBuilder<Workout, Workout, QSortBy> {
@@ -591,18 +684,6 @@ extension WorkoutQuerySortBy on QueryBuilder<Workout, Workout, QSortBy> {
     });
   }
 
-  QueryBuilder<Workout, Workout, QAfterSortBy> sortByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterSortBy> sortByIsSkippedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.desc);
-    });
-  }
-
   QueryBuilder<Workout, Workout, QAfterSortBy> sortByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
@@ -612,6 +693,18 @@ extension WorkoutQuerySortBy on QueryBuilder<Workout, Workout, QSortBy> {
   QueryBuilder<Workout, Workout, QAfterSortBy> sortByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
     });
   }
 }
@@ -642,18 +735,6 @@ extension WorkoutQuerySortThenBy
     });
   }
 
-  QueryBuilder<Workout, Workout, QAfterSortBy> thenByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Workout, Workout, QAfterSortBy> thenByIsSkippedDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'isSkipped', Sort.desc);
-    });
-  }
-
   QueryBuilder<Workout, Workout, QAfterSortBy> thenByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
@@ -663,6 +744,18 @@ extension WorkoutQuerySortThenBy
   QueryBuilder<Workout, Workout, QAfterSortBy> thenByNoteDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByStatusDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'status', Sort.desc);
     });
   }
 }
@@ -675,17 +768,17 @@ extension WorkoutQueryWhereDistinct
     });
   }
 
-  QueryBuilder<Workout, Workout, QDistinct> distinctByIsSkipped() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'isSkipped');
-    });
-  }
-
   QueryBuilder<Workout, Workout, QDistinct> distinctByNote({
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'note', caseSensitive: caseSensitive);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QDistinct> distinctByStatus() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'status');
     });
   }
 }
@@ -704,15 +797,15 @@ extension WorkoutQueryProperty
     });
   }
 
-  QueryBuilder<Workout, bool, QQueryOperations> isSkippedProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'isSkipped');
-    });
-  }
-
   QueryBuilder<Workout, String?, QQueryOperations> noteProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'note');
+    });
+  }
+
+  QueryBuilder<Workout, WorkoutStatus, QQueryOperations> statusProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'status');
     });
   }
 }

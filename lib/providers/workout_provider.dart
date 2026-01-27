@@ -22,11 +22,10 @@ class WorkoutProvider extends ChangeNotifier {
   Map<int, List<WorkoutSet>> lastCycleWorkoutSets = {};
   List<PlanDayExercise> workoutExercises = [];
 
-  DateTime? weekRangeStart;
-  DateTime? weekRangeEnd;
+  late DateTime weekRangeStart;
+  late DateTime weekRangeEnd;
 
   WorkoutProvider(this._isarService, this._planProvider);
-  //todo implement updating of dayMap in planProvider.
   // --- Public Methods ---
   Future<void> getOrCreateWorkoutForDay(
     PlanDay planDay,
@@ -37,22 +36,24 @@ class WorkoutProvider extends ChangeNotifier {
 
     final existingWorkout = await _isarService.findWorkoutForDay(
       planDay,
-      weekRangeStart!,
-      weekRangeEnd!,
+      weekRangeStart,
+      weekRangeEnd,
     );
     if (existingWorkout != null) {
       activeWorkout = existingWorkout;
     } else {
-      final targetDate = weekRangeStart!.add(
+      final targetDate = weekRangeStart.add(
         Duration(days: planDay.dayOrder - 1),
       );
       final newWorkout = Workout()
         ..date = targetDate
-        ..planDay.value = planDay;
+        ..planDay.value = planDay
+        ..planSession.value = _planProvider.activeSession;
       final savedWorkout = await _isarService.saveWorkout(newWorkout);
       activeWorkout = savedWorkout;
     }
 
+    _planProvider.updateDayMapping(planDay, activeWorkout!);
     workoutExercises = await _fetchExercisesForWorkout(activeWorkout);
     lastCycleWorkout = await _fetchLastCycleWorkout(planDay);
     lastWorkout = await _fetchLastWorkout(planDay);
@@ -79,7 +80,6 @@ class WorkoutProvider extends ChangeNotifier {
           ..setNumber = i + 1
           ..exercise.value = exercise
           ..workout.value = activeWorkout;
-        await _isarService.saveWorkoutSet(newSet);
         newSets.add(newSet);
       }
       loggedSets.putIfAbsent(exercise.orderIndex, () => newSets);
@@ -91,33 +91,51 @@ class WorkoutProvider extends ChangeNotifier {
     Map<int, (double, int)> workoutSets,
     List<int?> skippedSets,
   ) async {
-    if (!isWorkoutActive) return;
-    List<WorkoutSet>? setsForExercise = loggedSets[exerciseOrder];
-    if (setsForExercise == null) return;
-
-    if (skippedSets.length == workoutSets.length) {
-      await _isarService.markExerciseAsSkipped(setsForExercise);
-      return;
+    if (!isWorkoutActive) {
+      throw Exception("logging Sets failed there is no active workout");
     }
+    List<WorkoutSet>? setsForExercise = loggedSets[exerciseOrder];
+    if (setsForExercise == null || setsForExercise.isEmpty) return;
+
+    bool hasAtLeastOneValidSet = false;
 
     for (final set in setsForExercise) {
       final performance = workoutSets[set.setNumber];
-      if (performance != null && !skippedSets.contains(set.setNumber)) {
-        set.weight = performance.$1;
-        set.reps = performance.$2;
+
+      final isExplicitlySkipped = skippedSets.contains(set.setNumber);
+
+      final isImplicitlySkipped = !_isValidPerformance(performance);
+
+      if (isExplicitlySkipped || isImplicitlySkipped) {
+        set.isSkipped = true;
       } else {
-        await _isarService.markSetAsSkipped(set);
+        set.isSkipped = false;
+        set.weight = performance!.$1;
+        set.reps = performance.$2;
+        hasAtLeastOneValidSet = true;
       }
     }
-    await _isarService.updateWorkoutSets(setsForExercise);
+
+    if (!hasAtLeastOneValidSet) {
+      await _isarService.markExerciseAsSkipped(setsForExercise);
+      loggedSets[exerciseOrder] = [setsForExercise.first];
+    } else {
+      await _isarService.createWorkoutSets(setsForExercise);
+    }
   }
 
-  Future<void> addSetToActiveWorkout({
+  void cancelLoggingSets(PlanDayExercise pde) {
+    if (!isWorkoutActive) throw Exception();
+    loggedSets.remove(pde.orderIndex);
+    notifyListeners();
+  }
+
+  void addSetToActiveWorkout({
     required PlanDayExercise planDayExercise,
     required int setNumber,
     required int reps,
     required double weight,
-  }) async {
+  }) {
     if (!isWorkoutActive) return;
     final newSet = WorkoutSet()
       ..setNumber = setNumber
@@ -128,37 +146,20 @@ class WorkoutProvider extends ChangeNotifier {
     if (loggedSets[planDayExercise.orderIndex] == null) {
       throw Exception();
     }
-    loggedSets[planDayExercise.orderIndex]?.add(newSet);
-    await _isarService.saveWorkoutSet(newSet);
-    await fetchSetsForExercise(planDayExercise);
+    loggedSets[planDayExercise.orderIndex]!.add(newSet);
     notifyListeners();
   }
 
-  Future<void> removeSetFromWorkout({
+  void removeSetFromWorkout({
     required PlanDayExercise planDayExercise,
     required int setNumber,
-  }) async {
+  }) {
     if (!isWorkoutActive || loggedSets[planDayExercise.orderIndex] == null) {
       throw Exception();
     }
     loggedSets[planDayExercise.orderIndex]!.removeWhere(
       (workoutSet) => workoutSet.setNumber == setNumber,
     );
-    await _isarService.deleteWorkoutSet(
-      activeWorkout!,
-      setNumber,
-      planDayExercise,
-    );
-    notifyListeners();
-  }
-
-  Future<void> fetchSetsForExercise(PlanDayExercise exercise) async {
-    if (!isWorkoutActive) return;
-    final sets = await _isarService.findSetsForExercise(
-      exercise.id,
-      activeWorkout!.id,
-    );
-    loggedSets[exercise.orderIndex] = sets;
     notifyListeners();
   }
 
@@ -230,7 +231,52 @@ class WorkoutProvider extends ChangeNotifier {
     return result;
   }
 
-  void finishWorkout() {
+  bool _isValidPerformance((double, int)? performance) {
+    if (performance == null) return false;
+    return performance.$1 > 0 || performance.$2 > 0;
+  }
+
+  Future<void> finishWorkout() async {
+    //TODO THIS SHOULD CHANGE THE STATUS OF WORKOUT IN DATABASE BASED ON CONDITIONS OF FILLED WORKOUT SETS
+    if (!isWorkoutActive) {
+      throw Exception("No workout Active -> finish Workout");
+    }
+    // --- STEP 1: ANALYZE DATA ---
+    bool hasAnyActivity = false;
+    bool isFullyCompleted = true;
+
+    for (final exercise in workoutExercises) {
+      final sets = loggedSets[exercise.orderIndex];
+      if (sets == null || sets.isEmpty) {
+        isFullyCompleted = false;
+      } else {
+        hasAnyActivity = true;
+      }
+    }
+    WorkoutStatus newStatus;
+
+    if (!hasAnyActivity) {
+      // Case A: Planned (User just peeked, didn't open any exercise accordion)
+      newStatus = WorkoutStatus.planned;
+    } else if (isFullyCompleted) {
+      // Case B: Completed (All exercises have valid data)
+      newStatus = WorkoutStatus.completed;
+    } else {
+      // Case C: In Progress (Some exercises touched, or touched but left empty)
+      newStatus = WorkoutStatus.inProgress;
+    }
+
+    activeWorkout!.status = newStatus;
+    await _isarService.saveWorkout(activeWorkout!);
+
+    // --- STEP 4: TRIGGER PLAN LOGIC (If Completed) ---
+    if (newStatus == WorkoutStatus.completed ||
+        newStatus == WorkoutStatus.inProgress) {
+      _planProvider.updateDayMapping(
+        activeWorkout!.planDay.value!,
+        activeWorkout!,
+      );
+    }
     activeWorkout = null;
     lastWorkout = null;
     lastCycleWorkout = null;

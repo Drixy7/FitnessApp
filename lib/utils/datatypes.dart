@@ -24,6 +24,8 @@ enum RepRange {
   highRep, //15+
 }
 
+enum WorkoutStatus { planned, inProgress, completed, skipped }
+
 class WeekSelectionResult {
   final int selectedTotalWeek;
   final DateTime startOfWeek;

@@ -9,7 +9,6 @@ import 'package:intl/intl.dart';
 import '../models/plan.dart';
 import 'isar_service.dart';
 
-//TODO refactor so when Plan Session is terminated it only is accessible as an history object
 class PlanProvider extends ChangeNotifier {
   final IsarService _isarService;
 
@@ -73,9 +72,9 @@ class PlanProvider extends ChangeNotifier {
     Plan plan,
     PlanPersonalizationResult personalization,
   ) async {
-    //TODO Implement workout skip logic depending on personalization.selectedStartDate
     isLoading = true;
     notifyListeners();
+
     plan.isActive = true;
     await _isarService.savePlan(plan);
     PlanSession newSession = PlanSession()
@@ -86,6 +85,26 @@ class PlanProvider extends ChangeNotifier {
 
     if (personalization.dayOrder != null) {
       await _isarService.personalisePlan(plan, personalization.dayOrder!);
+    }
+
+    final firstWorkoutDay = personalization.selectedStartDate.weekday;
+    await plan.days.load();
+    final allPlanDays = plan.days.toList();
+    final firstWeekDays = allPlanDays
+        .where((day) => day.weekNumber == 1)
+        .toList();
+    for (final planDay in firstWeekDays) {
+      if (planDay.dayOrder < firstWorkoutDay) {
+        final DateTime missedDate = personalization.firstWeekStart.add(
+          Duration(days: planDay.dayOrder - 1),
+        );
+        final skippedWorkout = Workout()
+          ..date = missedDate
+          ..planSession.value = activeSession
+          ..status = WorkoutStatus.skipped
+          ..planDay.value = planDay;
+        await _isarService.saveWorkout(skippedWorkout);
+      }
     }
 
     await _loadDataForActiveSession();
@@ -107,7 +126,6 @@ class PlanProvider extends ChangeNotifier {
   }
 
   Future<void> _updateForWeek(int totalWeek) async {
-    //TODO Implement adding logged workouts to a List<>
     if (_activePlan == null || activeSession == null) throw Exception();
 
     final dateInSelectedWeek = activeSession!.startDate.add(
@@ -142,6 +160,7 @@ class PlanProvider extends ChangeNotifier {
     };
   }
 
+  //TODO add method to check if the whole week is finished
   void updateDayMapping(PlanDay day, Workout workout) {
     daysForWeek[day] = workout;
     notifyListeners();
