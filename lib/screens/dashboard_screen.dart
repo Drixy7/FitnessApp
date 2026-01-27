@@ -40,9 +40,10 @@ class DashboardScreen extends StatelessWidget {
                   SafeArea(child: StatusCard()),
                   Expanded(
                     child: ListView.builder(
-                      itemCount: planProvider.daysForWeek.length,
+                      itemCount: planProvider.daysForWeek.keys.length,
                       itemBuilder: (context, index) {
-                        final day = planProvider.daysForWeek[index];
+                        final day = planProvider.daysForWeek.keys
+                            .toList()[index];
                         return TrainingCard(
                           day: day,
                           onTap: () {

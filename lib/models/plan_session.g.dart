@@ -73,7 +73,7 @@ void _planSessionSerialize(
 ) {
   writer.writeDateTime(offsets[0], object.endDate);
   writer.writeLong(offsets[1], object.lastCompletedAbsoluteWeek);
-  writer.writeDateTime(offsets[2], object.startTime);
+  writer.writeDateTime(offsets[2], object.startDate);
 }
 
 PlanSession _planSessionDeserialize(
@@ -86,7 +86,7 @@ PlanSession _planSessionDeserialize(
   object.endDate = reader.readDateTimeOrNull(offsets[0]);
   object.id = id;
   object.lastCompletedAbsoluteWeek = reader.readLong(offsets[1]);
-  object.startTime = reader.readDateTime(offsets[2]);
+  object.startDate = reader.readDateTime(offsets[2]);
   return object;
 }
 

@@ -26,7 +26,7 @@ class WorkoutProvider extends ChangeNotifier {
   DateTime? weekRangeEnd;
 
   WorkoutProvider(this._isarService, this._planProvider);
-
+  //todo implement updating of dayMap in planProvider.
   // --- Public Methods ---
   Future<void> getOrCreateWorkoutForDay(
     PlanDay planDay,
@@ -154,7 +154,7 @@ class WorkoutProvider extends ChangeNotifier {
 
   Future<void> fetchSetsForExercise(PlanDayExercise exercise) async {
     if (!isWorkoutActive) return;
-    final sets = await _isarService.getSetsForExercise(
+    final sets = await _isarService.findSetsForExercise(
       exercise.id,
       activeWorkout!.id,
     );
@@ -231,10 +231,6 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   void finishWorkout() {
-    if (!isWorkoutActive) return;
-    //TODO FIX THE LAST COMPLETED WEEK!!!
-    _planProvider.activeSession!.lastCompletedAbsoluteWeek =
-        activeWorkout!.planDay.value?.weekNumber ?? -1;
     activeWorkout = null;
     lastWorkout = null;
     lastCycleWorkout = null;

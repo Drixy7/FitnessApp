@@ -20,7 +20,7 @@ class StatusCard extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: WeekChooserView(
-                  firstAvailableDate: planProvider.activeSession!.startTime,
+                  firstAvailableDate: planProvider.activeSession!.startDate,
                   initialWeekSelection: planProvider.currentWeekSelection,
                 ),
               );

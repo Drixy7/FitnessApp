@@ -8,6 +8,6 @@ class PlanSession {
   Id id = Isar.autoIncrement;
   final plan = IsarLink<Plan>();
   int lastCompletedAbsoluteWeek = 0;
-  late DateTime startTime;
+  late DateTime startDate;
   DateTime? endDate;
 }

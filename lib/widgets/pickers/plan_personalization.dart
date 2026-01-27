@@ -6,12 +6,7 @@ import 'package:intl/intl.dart';
 
 class PlanPersonalization extends StatefulWidget {
   final Plan plan;
-  final bool isDayOrderDisabled;
-  const PlanPersonalization({
-    super.key,
-    required this.plan,
-    required this.isDayOrderDisabled,
-  });
+  const PlanPersonalization({super.key, required this.plan});
 
   @override
   State<PlanPersonalization> createState() => _PlanPersonalizationState();
@@ -98,7 +93,7 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
   Future<void> _selectStartDate(BuildContext context) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final firstDate = today; //TODO REFACTOR FOR LIMIT OF OVERLAPPING SESSIONS.
+    final firstDate = today;
     final daysUntilEndOfWeek = 7 - today.weekday;
     final lastDate = today.add(Duration(days: daysUntilEndOfWeek + 7));
 
@@ -185,7 +180,7 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
           ),
           const SizedBox(height: 32),
 
-          if (!widget.isDayOrderDisabled) ...[
+          ...[
             // --- DAY ORDER PERSONALIZATION ---
             Text(
               "Personalize workout days",
@@ -254,11 +249,7 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
                       selectedStartDate: _selectedStartDate,
                       firstWeekStart: _firstWeekStart,
                     );
-                    if (!widget.isDayOrderDisabled) {
-                      _showWarningDialog(result, context);
-                    } else {
-                      Navigator.of(context).pop(result);
-                    }
+                    _showWarningDialog(result, context);
                   },
                   child: const Text("Start Plan"),
                 ),

@@ -198,13 +198,31 @@ class IsarService {
     return isar.plans.where().findAll();
   }
 
+  Future<void> savePlan(Plan plan) async {
+    final isar = await db;
+    await isar.writeTxn(() async => await isar.plans.put(plan));
+  }
+
+  Future<Map<Plan, PlanSession?>> fetchPlansWithLatestSession() async {
+    final plans = await findAllPlans();
+    final Map<Plan, PlanSession?> results = {};
+
+    for (final plan in plans) {
+      final latestSession = await findLastPlanSession(plan);
+
+      results[plan] = latestSession;
+    }
+
+    return results;
+  }
+
   // PlanSession manipulation:
-  Future<PlanSession?> getActivePlanSession() async {
+  Future<PlanSession?> findActivePlanSession() async {
     final isar = await db;
     return isar.planSessions.filter().endDateIsNull().findFirst();
   }
 
-  Future<PlanSession?> getLastPlanSession(Plan plan) async {
+  Future<PlanSession?> findLastPlanSession(Plan plan) async {
     final isar = await db;
     return isar.planSessions
         .filter()
@@ -248,7 +266,7 @@ class IsarService {
   }
 
   //PlanDay manipulation
-  Future<List<PlanDay>> getDaysForWeek(int weekNumber) async {
+  Future<List<PlanDay>> findDaysForWeek(int weekNumber) async {
     final isar = await db;
     return isar.planDays.filter().weekNumberEqualTo(weekNumber).findAll();
   }
@@ -280,6 +298,20 @@ class IsarService {
         .findFirst();
   }
 
+  Future<List<Workout>> findWorkoutsForWeek(
+    DateTime startOfWeek,
+    DateTime endOfWeek,
+  ) async {
+    final isar = await db;
+    return await isar.workouts
+        .filter()
+        .dateBetween(
+          startOfWeek,
+          endOfWeek.add(Duration(days: 1)).subtract(Duration(milliseconds: 1)),
+        )
+        .findAll();
+  }
+
   Future<Workout?> findPreviousWorkout(PlanDay day, DateTime beforeDate) async {
     final isar = await db;
     return isar.workouts
@@ -297,7 +329,7 @@ class IsarService {
   }
 
   //Workout set manipulation:
-  Future<List<WorkoutSet>> getSetsForExercise(
+  Future<List<WorkoutSet>> findSetsForExercise(
     int exerciseId,
     int workoutId,
   ) async {
