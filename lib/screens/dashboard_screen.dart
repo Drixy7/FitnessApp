@@ -14,13 +14,14 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final planProvider = context.watch<PlanProvider>();
+    final colors = Theme.of(context).colorScheme;
 
     Future<void> navigateToDayDetail(PlanDay day) async {
       final workoutProvider = context.read<WorkoutProvider>();
       final weekSelection = planProvider.currentWeekSelection;
 
       if (weekSelection == null) {
-        return;
+        throw Exception("No week selection logically set");
       }
 
       await workoutProvider.getOrCreateWorkoutForDay(day, weekSelection);
@@ -46,6 +47,11 @@ class DashboardScreen extends StatelessWidget {
                             .toList()[index];
                         return TrainingCard(
                           day: day,
+                          workout: planProvider.daysForWeek[day],
+                          onShowInfo: () {},
+                          onShowStats: () {},
+                          onSkip: () {},
+                          onUnskip: () {},
                           onTap: () {
                             navigateToDayDetail(day);
                           },
@@ -53,6 +59,7 @@ class DashboardScreen extends StatelessWidget {
                       },
                     ),
                   ),
+                  SizedBox(height: 80),
                 ],
               ),
       ),

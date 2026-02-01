@@ -18,14 +18,9 @@ const PlanDaySchema = CollectionSchema(
   id: -5005156141435949856,
   properties: {
     r'dayOrder': PropertySchema(id: 0, name: r'dayOrder', type: IsarType.long),
-    r'description': PropertySchema(
-      id: 1,
-      name: r'description',
-      type: IsarType.string,
-    ),
-    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
+    r'name': PropertySchema(id: 1, name: r'name', type: IsarType.string),
     r'weekNumber': PropertySchema(
-      id: 3,
+      id: 2,
       name: r'weekNumber',
       type: IsarType.long,
     ),
@@ -66,12 +61,6 @@ int _planDayEstimateSize(
   Map<Type, List<int>> allOffsets,
 ) {
   var bytesCount = offsets.last;
-  {
-    final value = object.description;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   bytesCount += 3 + object.name.length * 3;
   return bytesCount;
 }
@@ -83,9 +72,8 @@ void _planDaySerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeLong(offsets[0], object.dayOrder);
-  writer.writeString(offsets[1], object.description);
-  writer.writeString(offsets[2], object.name);
-  writer.writeLong(offsets[3], object.weekNumber);
+  writer.writeString(offsets[1], object.name);
+  writer.writeLong(offsets[2], object.weekNumber);
 }
 
 PlanDay _planDayDeserialize(
@@ -96,10 +84,9 @@ PlanDay _planDayDeserialize(
 ) {
   final object = PlanDay();
   object.dayOrder = reader.readLong(offsets[0]);
-  object.description = reader.readStringOrNull(offsets[1]);
   object.id = id;
-  object.name = reader.readString(offsets[2]);
-  object.weekNumber = reader.readLong(offsets[3]);
+  object.name = reader.readString(offsets[1]);
+  object.weekNumber = reader.readLong(offsets[2]);
   return object;
 }
 
@@ -113,10 +100,8 @@ P _planDayDeserializeProp<P>(
     case 0:
       return (reader.readLong(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
-    case 2:
       return (reader.readString(offset)) as P;
-    case 3:
+    case 2:
       return (reader.readLong(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -277,169 +262,6 @@ extension PlanDayQueryFilter
           upper: upper,
           includeUpper: includeUpper,
         ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'description'),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'description'),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'description',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionContains(
-    String value, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'description',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionMatches(
-    String pattern, {
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'description',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition> descriptionIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'description', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterFilterCondition>
-  descriptionIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'description', value: ''),
       );
     });
   }
@@ -801,18 +623,6 @@ extension PlanDayQuerySortBy on QueryBuilder<PlanDay, PlanDay, QSortBy> {
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByDescription() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByDescriptionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.desc);
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QAfterSortBy> sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
@@ -849,18 +659,6 @@ extension PlanDayQuerySortThenBy
   QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByDayOrderDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'dayOrder', Sort.desc);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByDescription() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.asc);
-    });
-  }
-
-  QueryBuilder<PlanDay, PlanDay, QAfterSortBy> thenByDescriptionDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'description', Sort.desc);
     });
   }
 
@@ -909,14 +707,6 @@ extension PlanDayQueryWhereDistinct
     });
   }
 
-  QueryBuilder<PlanDay, PlanDay, QDistinct> distinctByDescription({
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'description', caseSensitive: caseSensitive);
-    });
-  }
-
   QueryBuilder<PlanDay, PlanDay, QDistinct> distinctByName({
     bool caseSensitive = true,
   }) {
@@ -943,12 +733,6 @@ extension PlanDayQueryProperty
   QueryBuilder<PlanDay, int, QQueryOperations> dayOrderProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'dayOrder');
-    });
-  }
-
-  QueryBuilder<PlanDay, String?, QQueryOperations> descriptionProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'description');
     });
   }
 

@@ -18,6 +18,7 @@ class PlanProvider extends ChangeNotifier {
   bool isLoading = true;
   Map<PlanDay, Workout?> daysForWeek = {};
   WeekSelectionResult? currentWeekSelection;
+  double currentCompletion = 0;
 
   PlanProvider(this._isarService) {
     _initialize();
@@ -47,8 +48,6 @@ class PlanProvider extends ChangeNotifier {
     _activePlan = activeSession!.plan.value;
     if (_activePlan == null) throw Exception("plan bound to session not found");
     await _updateForWeek(activeSession!.lastCompletedAbsoluteWeek + 1);
-    isLoading = false;
-    notifyListeners();
   }
 
   Future<void> endPlanSession() async {
@@ -158,11 +157,31 @@ class PlanProvider extends ChangeNotifier {
           orElse: () => null,
         ),
     };
+    _calculateWeeklyCompletion();
+  }
+
+  void _calculateWeeklyCompletion() {
+    if (daysForWeek.isEmpty) {
+      currentCompletion = 0.0;
+      return;
+    }
+
+    final totalDays = daysForWeek.length;
+
+    final completedDays = daysForWeek.values.where((workout) {
+      if (workout == null) return false;
+
+      return workout.status == WorkoutStatus.completed ||
+          workout.status == WorkoutStatus.skipped;
+    }).length;
+
+    currentCompletion = completedDays / totalDays;
   }
 
   //TODO add method to check if the whole week is finished
   void updateDayMapping(PlanDay day, Workout workout) {
     daysForWeek[day] = workout;
+    _calculateWeeklyCompletion();
     notifyListeners();
   }
 

@@ -93,12 +93,13 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
   Future<void> _selectStartDate(BuildContext context) async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    final firstDate = today;
+    final firstDate = today.subtract(Duration(days: 1)); //todo change
     final daysUntilEndOfWeek = 7 - today.weekday;
     final lastDate = today.add(Duration(days: daysUntilEndOfWeek + 7));
 
     final WeekSelectionResult? pickedDate =
         await showModalBottomSheet<WeekSelectionResult>(
+          isScrollControlled: true,
           context: context,
           builder: (context) {
             return Padding(

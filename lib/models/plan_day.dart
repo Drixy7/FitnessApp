@@ -9,7 +9,6 @@ part 'plan_day.g.dart';
 class PlanDay {
   Id id = Isar.autoIncrement;
   late String name;
-  String? description;
   late int weekNumber;
   late int dayOrder;
 

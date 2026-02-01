@@ -274,7 +274,7 @@ class IsarService {
   //Workout manipulation:
   Future<Workout> saveWorkout(Workout workout) async {
     final isar = await db;
-    isar.writeTxn(() async {
+    await isar.writeTxn(() async {
       await isar.workouts.put(workout);
       await workout.planDay.save();
     });
@@ -303,13 +303,10 @@ class IsarService {
     DateTime endOfWeek,
   ) async {
     final isar = await db;
-    return await isar.workouts
-        .filter()
-        .dateBetween(
-          startOfWeek,
-          endOfWeek.add(Duration(days: 1)).subtract(Duration(milliseconds: 1)),
-        )
-        .findAll();
+    final end = endOfWeek
+        .add(Duration(days: 1))
+        .subtract(Duration(milliseconds: 1));
+    return await isar.workouts.filter().dateBetween(startOfWeek, end).findAll();
   }
 
   Future<Workout?> findPreviousWorkout(PlanDay day, DateTime beforeDate) async {

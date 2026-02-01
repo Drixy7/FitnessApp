@@ -237,7 +237,6 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Future<void> finishWorkout() async {
-    //TODO THIS SHOULD CHANGE THE STATUS OF WORKOUT IN DATABASE BASED ON CONDITIONS OF FILLED WORKOUT SETS
     if (!isWorkoutActive) {
       throw Exception("No workout Active -> finish Workout");
     }
@@ -257,7 +256,9 @@ class WorkoutProvider extends ChangeNotifier {
 
     if (!hasAnyActivity) {
       // Case A: Planned (User just peeked, didn't open any exercise accordion)
-      newStatus = WorkoutStatus.planned;
+      activeWorkout!.status == WorkoutStatus.skipped
+          ? newStatus = WorkoutStatus.skipped
+          : newStatus = WorkoutStatus.planned;
     } else if (isFullyCompleted) {
       // Case B: Completed (All exercises have valid data)
       newStatus = WorkoutStatus.completed;

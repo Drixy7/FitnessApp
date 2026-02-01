@@ -53,7 +53,7 @@ class _PlanChooserScreenState extends State<PlanChooserScreen> {
   }
 
   Future<void> _renewSession(Plan plan, PlanSession latestSession) async {
-    context.read<PlanProvider>().renewPlanSession(plan, latestSession);
+    await context.read<PlanProvider>().renewPlanSession(plan, latestSession);
   }
 
   @override
