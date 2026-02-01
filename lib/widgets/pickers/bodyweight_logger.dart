@@ -65,7 +65,7 @@ class _BodyWeightLoggerState extends State<BodyWeightLogger> {
 
     logToSave.weight = weight;
 
-    await isarService.updateOrCreateWeightLog(logToSave);
+    await isarService.saveWeightLog(logToSave);
 
     if (mounted) Navigator.pop(context);
   }

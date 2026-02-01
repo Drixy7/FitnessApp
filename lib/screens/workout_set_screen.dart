@@ -7,8 +7,7 @@ import 'package:provider/provider.dart';
 
 import '../models/workout_set.dart'; // Needed for input formatters
 
-// 1. Convert to a StatefulWidget to manage the TextControllers
-
+//TODO Forbid option to access exercise if its skipped => must reverse skip
 class WorkoutSetScreen extends StatefulWidget {
   final PlanDayExercise planDayExercise;
   const WorkoutSetScreen({super.key, required this.planDayExercise});
@@ -101,7 +100,7 @@ class _WorkoutSetScreenState extends State<WorkoutSetScreen> {
     if (!isConfirmed) {
       return false;
     }
-    workoutProvider.removeSetFromWorkout(
+    await workoutProvider.removeSetFromActiveWorkout(
       planDayExercise: widget.planDayExercise,
       setNumber: index + 1,
     );

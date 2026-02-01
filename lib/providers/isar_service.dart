@@ -76,7 +76,7 @@ class IsarService {
     await isar.writeTxn(() async {
       for (int week = 1; week <= weeksPerCycle; week++) {
         for (int i in workingDays) {
-          final day = await _createAndSavePlanDay(
+          final day = await _savePlanDay(
             isar: isar,
             dayName: dayOrderAndNames[i]!,
             weekNumber: week,
@@ -116,7 +116,7 @@ class IsarService {
     );
   }
 
-  Future<PlanDay> _createAndSavePlanDay({
+  Future<PlanDay> _savePlanDay({
     required Isar isar,
     required String dayName,
     required int weekNumber,
@@ -203,7 +203,7 @@ class IsarService {
     await isar.writeTxn(() async => await isar.plans.put(plan));
   }
 
-  Future<Map<Plan, PlanSession?>> fetchPlansWithLatestSession() async {
+  Future<Map<Plan, PlanSession?>> findPlansWithLatestSession() async {
     final plans = await findAllPlans();
     final Map<Plan, PlanSession?> results = {};
 
@@ -231,7 +231,7 @@ class IsarService {
         .findFirst();
   }
 
-  Future<PlanSession> createOrSaveSession(PlanSession newSession) async {
+  Future<PlanSession> savePlanSession(PlanSession newSession) async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.planSessions.put(newSession);
@@ -277,8 +277,19 @@ class IsarService {
     await isar.writeTxn(() async {
       await isar.workouts.put(workout);
       await workout.planDay.save();
+      await workout.planSession.save();
     });
     return workout;
+  }
+
+  Future<void> skipWorkout(Workout workout) async {
+    final isar = await db;
+    workout.status = WorkoutStatus.skipped;
+    final setsToDelete = workout.sets.map((s) => s.id).toList();
+    await isar.writeTxn(() async {
+      await isar.workoutSets.deleteAll(setsToDelete);
+    });
+    await saveWorkout(workout);
   }
 
   Future<Workout?> findWorkoutForDay(
@@ -363,10 +374,16 @@ class IsarService {
         .findAll();
   }
 
-  Future<void> createWorkoutSets(List<WorkoutSet> sets) async {
+  Future<void> saveWorkoutSets(List<WorkoutSet> sets) async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.workoutSets.putAll(sets);
+      final List<Future> linkFutures = [];
+      for (final set in sets) {
+        linkFutures.add(set.workout.save());
+        linkFutures.add(set.exercise.save());
+      }
+      await Future.wait(linkFutures);
     });
   }
 
@@ -376,6 +393,8 @@ class IsarService {
     firstSet.isSkipped = true;
     await isar.writeTxn(() async {
       await isar.workoutSets.put(firstSet);
+      await firstSet.workout.save();
+      await firstSet.exercise.save();
       if (sets.length > 1) {
         final idsToDelete = sets.sublist(1).map((s) => s.id).toList();
         await isar.workoutSets.deleteAll(idsToDelete);
@@ -427,7 +446,7 @@ class IsarService {
     return weightEntry;
   }
 
-  Future<void> updateOrCreateWeightLog(WeightLog weightLog) async {
+  Future<void> saveWeightLog(WeightLog weightLog) async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.weightLogs.put(weightLog);

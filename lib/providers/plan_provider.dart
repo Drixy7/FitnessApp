@@ -16,7 +16,8 @@ class PlanProvider extends ChangeNotifier {
   Plan? _activePlan;
   PlanSession? activeSession;
   bool isLoading = true;
-  Map<PlanDay, Workout?> daysForWeek = {};
+  Map<int, (PlanDay, Workout?)> daysForWeek =
+      {}; //int represents PlanDay.dayOrder
   WeekSelectionResult? currentWeekSelection;
   double currentCompletion = 0;
 
@@ -56,7 +57,7 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners(); //TODO REFACTOR THIS TO USE THE SUNDAY OF THE LAST COUNTED WEEK
     final now = DateTime.now();
     activeSession!.endDate = DateTime(now.year, now.month, now.day);
-    await _isarService.createOrSaveSession(activeSession!);
+    await _isarService.savePlanSession(activeSession!);
     _activePlan!.isActive = false;
     await _isarService.savePlan(_activePlan!);
     activeSession = null;
@@ -80,7 +81,7 @@ class PlanProvider extends ChangeNotifier {
       ..plan.value = plan
       ..startDate = personalization.firstWeekStart
       ..lastCompletedAbsoluteWeek = 0;
-    activeSession = await _isarService.createOrSaveSession(newSession);
+    activeSession = await _isarService.savePlanSession(newSession);
 
     if (personalization.dayOrder != null) {
       await _isarService.personalisePlan(plan, personalization.dayOrder!);
@@ -118,7 +119,7 @@ class PlanProvider extends ChangeNotifier {
     plan.isActive = true;
     await _isarService.savePlan(plan);
     planSession.endDate = null;
-    activeSession = await _isarService.createOrSaveSession(planSession);
+    activeSession = await _isarService.savePlanSession(planSession);
     await _loadDataForActiveSession();
     isLoading = false;
     notifyListeners();
@@ -152,9 +153,12 @@ class PlanProvider extends ChangeNotifier {
 
     daysForWeek = {
       for (var day in planDaysForWeek)
-        day: workoutsInWeek.cast<Workout?>().firstWhere(
-          (workout) => workout?.date.weekday == day.dayOrder,
-          orElse: () => null,
+        day.dayOrder: (
+          day,
+          workoutsInWeek.cast<Workout?>().firstWhere(
+            (workout) => workout?.date.weekday == day.dayOrder,
+            orElse: () => null,
+          ),
         ),
     };
     _calculateWeeklyCompletion();
@@ -168,19 +172,20 @@ class PlanProvider extends ChangeNotifier {
 
     final totalDays = daysForWeek.length;
 
-    final completedDays = daysForWeek.values.where((workout) {
-      if (workout == null) return false;
-
-      return workout.status == WorkoutStatus.completed ||
-          workout.status == WorkoutStatus.skipped;
-    }).length;
+    int completedDays = 0;
+    for (final entry in daysForWeek.values) {
+      if (entry.$2 != null && entry.$2?.status == WorkoutStatus.completed ||
+          entry.$2?.status == WorkoutStatus.skipped) {
+        completedDays++;
+      }
+    }
 
     currentCompletion = completedDays / totalDays;
   }
 
   //TODO add method to check if the whole week is finished
   void updateDayMapping(PlanDay day, Workout workout) {
-    daysForWeek[day] = workout;
+    daysForWeek[day.dayOrder] = (day, workout);
     _calculateWeeklyCompletion();
     notifyListeners();
   }

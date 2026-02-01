@@ -21,7 +21,7 @@ class _PlanChooserScreenState extends State<PlanChooserScreen> {
   @override
   void initState() {
     super.initState();
-    _plansFuture = context.read<IsarService>().fetchPlansWithLatestSession();
+    _plansFuture = context.read<IsarService>().findPlansWithLatestSession();
   }
 
   bool _shouldRenewSession(DateTime sessionEndDate) {

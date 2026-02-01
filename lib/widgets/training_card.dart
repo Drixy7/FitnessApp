@@ -63,12 +63,13 @@ class TrainingCard extends StatelessWidget {
       textColor = colors.onSurface.withOpacity(0.5);
       elevation = 0;
     } else if (_isCompleted) {
-      cardColor = Colors.lightGreen; // Or use a custom green from your theme
+      cardColor = colors
+          .surfaceContainerHighest; // Or use a custom green from your theme
       textColor = colors.onSurface; // Text on green
       elevation = 2;
     } else {
       // Planned (Default)
-      cardColor = colors.surface;
+      cardColor = colors.surfaceContainerHighest;
       textColor = colors.onSurface;
       elevation = 4;
     }
@@ -144,7 +145,6 @@ class TrainingCard extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // --- ROW 3: DYNAMIC ACTIONS ---
               _buildActionRow(context, textColor, colors),
             ],
           ),
@@ -188,11 +188,7 @@ class TrainingCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(
-                Icons.check_circle,
-                size: 20,
-                color: Colors.green,
-              ), // Or textColor
+              const Icon(Icons.check_circle, size: 20, color: Colors.green),
               const SizedBox(width: 8),
               Text(
                 "Completed",
@@ -205,9 +201,7 @@ class TrainingCard extends StatelessWidget {
             icon: const Icon(Icons.bar_chart),
             label: const Text("Stats"),
             style: FilledButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(
-                0.2,
-              ), // Subtle button on green
+              backgroundColor: Colors.white.withOpacity(0.2),
               foregroundColor: textColor,
               elevation: 0,
             ),

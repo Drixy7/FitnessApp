@@ -14,17 +14,11 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final planProvider = context.watch<PlanProvider>();
+    final workoutProvider = context.watch<WorkoutProvider>();
     final colors = Theme.of(context).colorScheme;
 
     Future<void> navigateToDayDetail(PlanDay day) async {
-      final workoutProvider = context.read<WorkoutProvider>();
-      final weekSelection = planProvider.currentWeekSelection;
-
-      if (weekSelection == null) {
-        throw Exception("No week selection logically set");
-      }
-
-      await workoutProvider.getOrCreateWorkoutForDay(day, weekSelection);
+      await workoutProvider.getOrCreateWorkoutForDay(day);
       if (context.mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (context) => const DayDetailScreen()),
@@ -43,15 +37,22 @@ class DashboardScreen extends StatelessWidget {
                     child: ListView.builder(
                       itemCount: planProvider.daysForWeek.keys.length,
                       itemBuilder: (context, index) {
-                        final day = planProvider.daysForWeek.keys
-                            .toList()[index];
+                        final day = planProvider.daysForWeek.values
+                            .toList()[index]
+                            .$1;
+                        final workout =
+                            planProvider.daysForWeek[day.dayOrder]?.$2;
                         return TrainingCard(
                           day: day,
-                          workout: planProvider.daysForWeek[day],
+                          workout: workout,
                           onShowInfo: () {},
                           onShowStats: () {},
-                          onSkip: () {},
-                          onUnskip: () {},
+                          onSkip: () async {
+                            await workoutProvider.skipWorkout(workout, day);
+                          },
+                          onUnskip: () async {
+                            await workoutProvider.unSkipWorkout(workout!, day);
+                          },
                           onTap: () {
                             navigateToDayDetail(day);
                           },
