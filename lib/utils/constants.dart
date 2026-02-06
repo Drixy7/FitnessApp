@@ -1,7 +1,7 @@
 import '../models/exercise.dart';
 import 'datatypes.dart';
 
-List<Exercise> DefaultExercises() {
+List<Exercise> defaultExercises() {
   return [
     // --- CHEST ---
     Exercise()

@@ -8,14 +8,14 @@ import 'package:provider/provider.dart';
 
 import '../providers/plan_provider.dart';
 
-class PlanChooserScreen extends StatefulWidget {
-  const PlanChooserScreen({super.key});
+class PlanChooser extends StatefulWidget {
+  const PlanChooser({super.key});
 
   @override
-  State<PlanChooserScreen> createState() => _PlanChooserScreenState();
+  State<PlanChooser> createState() => _PlanChooserState();
 }
 
-class _PlanChooserScreenState extends State<PlanChooserScreen> {
+class _PlanChooserState extends State<PlanChooser> {
   late Future<Map<Plan, PlanSession?>> _plansFuture;
 
   @override

@@ -2,10 +2,10 @@
 // ... other imports
 import 'package:fitness_app/providers/navigation_provider.dart'; // Import the new provider
 import 'package:fitness_app/providers/plan_provider.dart';
-import 'package:fitness_app/screens/dashboard_screen.dart';
-import 'package:fitness_app/screens/plan_chooser_screen.dart';
-import 'package:fitness_app/screens/settings_screen.dart';
-import 'package:fitness_app/screens/statistics_screen.dart';
+import 'package:fitness_app/screens/dashboard.dart';
+import 'package:fitness_app/screens/plan_chooser.dart';
+import 'package:fitness_app/screens/settings.dart';
+import 'package:fitness_app/screens/statistics/statistics_navigation.dart';
 import 'package:fitness_app/widgets/navigation_bar.dart';
 import 'package:flutter/material.dart' hide NavigationBar;
 import 'package:provider/provider.dart';
@@ -26,15 +26,15 @@ class MainScaffold extends StatelessWidget {
         body: Center(child: CircularProgressIndicator()),
       );
     } else if (planProvider.activeSession != null) {
-      homeTab = const DashboardScreen();
+      homeTab = const Dashboard();
     } else {
-      homeTab = const PlanChooserScreen();
+      homeTab = const PlanChooser();
     }
 
     final List<Widget> screens = [
       homeTab,
-      const StatisticsScreen(),
-      const SettingsScreen(),
+      const StatisticsNavigation(),
+      const Settings(),
     ];
 
     return Scaffold(

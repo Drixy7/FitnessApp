@@ -39,18 +39,6 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // -- LOGIC TO FETCH DATA --
-  Future<void> _loadDataForActiveSession() async {
-    if (activeSession == null) throw Exception();
-
-    if (activeSession!.plan.value == null) {
-      await activeSession!.plan.load();
-    }
-    _activePlan = activeSession!.plan.value;
-    if (_activePlan == null) throw Exception("plan bound to session not found");
-    await _updateForWeek(activeSession!.lastCompletedAbsoluteWeek + 1);
-  }
-
   Future<void> endPlanSession() async {
     if (activeSession == null) return;
     isLoading = true;
@@ -125,6 +113,53 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void checkAndUpdateWeekCompletion() {
+    if (activeSession == null || currentWeekSelection == null) return;
+    final thisSelectedWeek = currentWeekSelection!.selectedTotalWeek;
+    final lastCompletedWeek = activeSession!.lastCompletedAbsoluteWeek;
+
+    if (thisSelectedWeek <= lastCompletedWeek) return;
+
+    final allDaysCompleted = daysForWeek.values.every((entry) {
+      final workout = entry.$2;
+      return workout != null &&
+          (workout.status == WorkoutStatus.completed ||
+              workout.status == WorkoutStatus.skipped);
+    });
+
+    if (allDaysCompleted && thisSelectedWeek > lastCompletedWeek) {
+      activeSession!.lastCompletedAbsoluteWeek = thisSelectedWeek;
+      _isarService.savePlanSession(activeSession!);
+    }
+  }
+
+  void updateDayMapping(PlanDay day, Workout workout) {
+    daysForWeek[day.dayOrder] = (day, workout);
+    _calculateWeeklyCompletion();
+    notifyListeners();
+  }
+
+  void goToAnyWeek(int week) async {
+    await _updateForWeek(week);
+    notifyListeners();
+  }
+
+  void goToNextWeek() async {
+    if (currentWeekSelection != null) {
+      checkAndUpdateWeekCompletion();
+      await _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
+      notifyListeners();
+    }
+  }
+
+  void goToPreviousWeek() async {
+    if (currentWeekSelection != null) {
+      await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
+      notifyListeners();
+    }
+  }
+
+  // Helper methods
   Future<void> _updateForWeek(int totalWeek) async {
     if (_activePlan == null || activeSession == null) throw Exception();
 
@@ -183,35 +218,18 @@ class PlanProvider extends ChangeNotifier {
     currentCompletion = completedDays / totalDays;
   }
 
-  //TODO add method to check if the whole week is finished
-  void updateDayMapping(PlanDay day, Workout workout) {
-    daysForWeek[day.dayOrder] = (day, workout);
-    _calculateWeeklyCompletion();
-    notifyListeners();
-  }
+  Future<void> _loadDataForActiveSession() async {
+    if (activeSession == null) throw Exception();
 
-  void goToAnyWeek(int week) async {
-    await _updateForWeek(week);
-    notifyListeners();
-  }
-
-  void goToNextWeek() async {
-    //TODO ADD future limiters
-    if (currentWeekSelection != null && _activePlan != null) {
-      await _updateForWeek(currentWeekSelection!.selectedTotalWeek + 1);
-      notifyListeners();
+    if (activeSession!.plan.value == null) {
+      await activeSession!.plan.load();
     }
+    _activePlan = activeSession!.plan.value;
+    if (_activePlan == null) throw Exception("plan bound to session not found");
+    await _updateForWeek(activeSession!.lastCompletedAbsoluteWeek + 1);
   }
 
-  void goToPreviousWeek() async {
-    //TODO ADD Limiter for going into past further than PlanStartDate
-    if (currentWeekSelection != null &&
-        currentWeekSelection!.selectedTotalWeek != 1) {
-      await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
-      notifyListeners();
-    }
-  }
-
+  // getters
   int get currentWeekInCycle {
     if (_activePlan == null || currentWeekSelection == null) return -1;
     return weekFromAbsoluteWeek(
@@ -238,9 +256,5 @@ class PlanProvider extends ChangeNotifier {
     final start = currentWeekSelection!.startOfWeek;
     final end = currentWeekSelection!.endOfWeek;
     return '${formatter.format(start)} - ${formatter.format(end)}';
-  }
-
-  DateTime? get planStartDate {
-    return _activePlan?.startedAt;
   }
 }

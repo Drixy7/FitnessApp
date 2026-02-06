@@ -51,7 +51,7 @@ class IsarService {
       return;
     }
     await isar.writeTxn(() async {
-      await isar.exercises.putAll(DefaultExercises());
+      await isar.exercises.putAll(defaultExercises());
     });
   }
 
@@ -96,7 +96,6 @@ class IsarService {
         ..days.addAll(allPlanDays)
         ..weeksPerCycle = weeksPerCycle
         ..daysPerWeek = workingDays.length
-        ..startedAt = null
         ..isActive = false
         ..isCustom = false
         ..difficulty = difficulty;
@@ -109,6 +108,7 @@ class IsarService {
     await seedAnyPlan(
       planName: PlanADefinition.name,
       weeksPerCycle: PlanADefinition.weeksPerCycle,
+      description: PlanADefinition.description,
       blueprintsOfDays: PlanADefinition.blueprintsOfDays,
       dayOrderAndNames: PlanADefinition.dayOrderAndNames,
       difficulty: PlanADefinition.difficulty,
@@ -391,6 +391,8 @@ class IsarService {
     final isar = await db;
     WorkoutSet firstSet = sets.first;
     firstSet.isSkipped = true;
+    firstSet.weight = -1;
+    firstSet.reps = -1;
     await isar.writeTxn(() async {
       await isar.workoutSets.put(firstSet);
       await firstSet.workout.save();

@@ -2,7 +2,6 @@ import 'package:fitness_app/models/workout_set.dart';
 import 'package:flutter/material.dart';
 
 class PerformanceHistory extends StatelessWidget {
-  // 1. You need to declare the list as a field of the class
   final List<WorkoutSet> loggedSets;
   final VoidCallback? copyToCurrent;
 
@@ -14,99 +13,283 @@ class PerformanceHistory extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     if (loggedSets.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Text(
-          "No performance data available.",
-          style: Theme.of(context).textTheme.labelMedium,
-        ),
-      );
+      return _buildEmptyState(theme);
     }
 
+    if (loggedSets.length == 1 && loggedSets.first.isSkipped) {
+      return _buildSkippedState(theme);
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSetsList(theme),
+          if (copyToCurrent != null) _buildCopyButton(theme),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.history,
+            size: 48,
+            color: theme.colorScheme.onSurface.withOpacity(0.3),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "No Performance History",
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Complete this exercise to see your performance data",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSkippedState(ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24.0),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.skip_next_outlined,
+            size: 48,
+            color: theme.colorScheme.onSurface.withOpacity(0.3),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            "Exercise Skipped",
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withOpacity(0.6),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "This exercise was skipped in this workout",
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontStyle: FontStyle.italic,
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSetsList(ThemeData theme) {
+    final bestSet = _findBestSet();
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.fromLTRB(16.0, 16.0, 16.0, 8.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 flex: 1,
                 child: Text(
                   "Set",
-                  style: Theme.of(context).textTheme.labelMedium,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Expanded(
                 flex: 2,
                 child: Text(
-                  "Weight (kg)",
-                  style: Theme.of(context).textTheme.labelMedium,
+                  "Weight",
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
               Expanded(
                 flex: 2,
                 child: Text(
                   "Reps",
-                  style: Theme.of(context).textTheme.labelMedium,
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        const Divider(),
-
-        Column(
-          children: List.generate(loggedSets.length, (index) {
+        const Divider(height: 1),
+        ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(12.0),
+          itemCount: loggedSets.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
             final set = loggedSets[index];
-            return Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16.0,
-                vertical: 4.0,
+            final isBest = set == bestSet;
+            return _buildSetRow(theme, set, isBest);
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSetRow(ThemeData theme, WorkoutSet set, bool isBest) {
+    if (set.isSkipped) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          borderRadius: BorderRadius.circular(8.0),
+          border: Border.all(color: theme.colorScheme.outline.withOpacity(0.2)),
+        ),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 30,
+              child: Text(
+                set.setNumber.toString(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.5),
+                ),
               ),
+            ),
+            Expanded(
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Expanded(
-                    flex: 1,
-                    child: Text(
-                      set.setNumber.toString(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                  Icon(
+                    Icons.block_outlined,
+                    size: 16,
+                    color: theme.colorScheme.onSurface.withOpacity(0.4),
                   ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      set.weight.toString(),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      set.reps.toString(),
-                      style: Theme.of(context).textTheme.bodyMedium,
+                  const SizedBox(width: 8),
+                  Text(
+                    "Skipped",
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: theme.colorScheme.onSurface.withOpacity(0.5),
                     ),
                   ),
                 ],
               ),
-            );
-          }),
+            ),
+          ],
         ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Center(
-            child: TextButton.icon(
-              iconAlignment: IconAlignment.end,
-              onPressed: copyToCurrent,
-              icon: Icon(Icons.copy_all_outlined),
-              label: const Text("Copy To current Workout"),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 12.0),
+      decoration: BoxDecoration(
+        color: isBest
+            ? theme.colorScheme.primaryContainer.withOpacity(0.3)
+            : theme.colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(8.0),
+        border: Border.all(
+          color: isBest
+              ? theme.colorScheme.primary.withOpacity(0.3)
+              : theme.colorScheme.outline.withOpacity(0.1),
+          width: isBest ? 1.5 : 1.0,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                Text(
+                  set.setNumber.toString(),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: isBest ? FontWeight.bold : FontWeight.normal,
+                    color: isBest ? theme.colorScheme.primary : null,
+                  ),
+                ),
+                if (isBest) ...[
+                  const SizedBox(width: 4),
+                  Icon(Icons.star, size: 14, color: theme.colorScheme.primary),
+                ],
+              ],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 2,
+            child: Text(
+              "${set.weight} kg",
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: isBest ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              set.reps.toString(),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: isBest ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildCopyButton(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: FilledButton.tonalIcon(
+          onPressed: copyToCurrent,
+          icon: const Icon(Icons.copy_all_outlined, size: 20),
+          label: const Text("Copy to Current Workout"),
+          style: FilledButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  WorkoutSet? _findBestSet() {
+    final completedSets = loggedSets.where((s) => !s.isSkipped).toList();
+    if (completedSets.isEmpty) return null;
+
+    return completedSets.reduce((best, current) {
+      final bestScore = best.weight * best.reps;
+      final currentScore = current.weight * current.reps;
+      return currentScore > bestScore ? current : best;
+    });
   }
 }

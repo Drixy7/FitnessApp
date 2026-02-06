@@ -22,6 +22,7 @@ class WorkoutProvider extends ChangeNotifier {
   Map<int, List<WorkoutSet>> lastWorkoutSets = {};
   Map<int, List<WorkoutSet>> lastCycleWorkoutSets = {};
   List<PlanDayExercise> workoutExercises = [];
+  double currentCompletion = 0;
 
   late DateTime weekRangeStart;
   late DateTime weekRangeEnd;
@@ -63,6 +64,7 @@ class WorkoutProvider extends ChangeNotifier {
     lastWorkout = await _fetchLastWorkout(planDay);
     lastWorkoutSets = await _fetchWorkoutSetsForWorkout(lastWorkout);
     lastCycleWorkoutSets = await _fetchWorkoutSetsForWorkout(lastCycleWorkout);
+    _calculateWorkoutProgress();
 
     notifyListeners();
   }
@@ -94,8 +96,14 @@ class WorkoutProvider extends ChangeNotifier {
     await _isarService.saveWorkout(workout);
     notifyListeners();
   }
-  //TODO add method to reverse skip exercise
-  //TODO add method to reverse skip of set
+
+  Future<void> reverseSetSkip(WorkoutSet set) async {
+    if (!isWorkoutActive || !set.isSkipped) return;
+    set.weight = 0.0;
+    set.reps = 0;
+    set.isSkipped = false;
+    await _isarService.saveWorkoutSet(set);
+  }
 
   Future<void> getOrCreateWorkoutSets(PlanDayExercise exercise) async {
     if (!isWorkoutActive) return;
@@ -104,7 +112,7 @@ class WorkoutProvider extends ChangeNotifier {
       exercise,
     );
     if (existingSets.isNotEmpty) {
-      loggedSets.putIfAbsent(exercise.orderIndex, () => existingSets);
+      loggedSets[exercise.orderIndex] = existingSets;
     } else {
       List<WorkoutSet> newSets = [];
       for (int i = 0; i < exercise.targetSets; i++) {
@@ -116,7 +124,7 @@ class WorkoutProvider extends ChangeNotifier {
           ..workout.value = activeWorkout;
         newSets.add(newSet);
       }
-      loggedSets.putIfAbsent(exercise.orderIndex, () => newSets);
+      loggedSets[exercise.orderIndex] = newSets;
     }
   }
 
@@ -129,7 +137,20 @@ class WorkoutProvider extends ChangeNotifier {
       throw Exception("logging Sets failed there is no active workout");
     }
     List<WorkoutSet>? setsForExercise = loggedSets[exerciseOrder];
-    if (setsForExercise == null || setsForExercise.isEmpty) return;
+    if (setsForExercise == null || setsForExercise.isEmpty) {
+      final newSet = WorkoutSet()
+        ..setNumber = 1
+        ..reps = -1
+        ..weight = -1
+        ..workout.value = activeWorkout
+        ..exercise.value = workoutExercises
+            .where((pde) => pde.orderIndex == exerciseOrder)
+            .first;
+      await skipExercise([newSet], exerciseOrder);
+      _calculateWorkoutProgress();
+      notifyListeners();
+      return;
+    }
 
     bool hasAtLeastOneValidSet = false;
 
@@ -151,16 +172,24 @@ class WorkoutProvider extends ChangeNotifier {
     }
 
     if (!hasAtLeastOneValidSet) {
-      await _isarService.markExerciseAsSkipped(setsForExercise);
-      loggedSets[exerciseOrder] = [setsForExercise.first];
+      await skipExercise(setsForExercise, exerciseOrder);
     } else {
       await _isarService.saveWorkoutSets(setsForExercise);
     }
+    _calculateWorkoutProgress();
+    notifyListeners();
   }
 
   void cancelLoggingSets(PlanDayExercise pde) {
     if (!isWorkoutActive) throw Exception();
-    loggedSets.remove(pde.orderIndex);
+    loggedSets[pde.orderIndex]!.clear();
+    notifyListeners();
+  }
+
+  Future<void> skipExercise(List<WorkoutSet> sets, int exerciseOrder) async {
+    await _isarService.markExerciseAsSkipped(sets);
+    loggedSets[exerciseOrder] = [sets.first];
+    _calculateWorkoutProgress();
     notifyListeners();
   }
 
@@ -206,9 +235,9 @@ class WorkoutProvider extends ChangeNotifier {
     if (!isWorkoutActive) {
       throw Exception("No workout Active -> finish Workout");
     }
-    // --- STEP 1: ANALYZE DATA ---
     bool hasAnyActivity = false;
     bool isFullyCompleted = true;
+    bool isFullySkipped = true;
 
     for (final exercise in workoutExercises) {
       final sets = loggedSets[exercise.orderIndex];
@@ -216,38 +245,46 @@ class WorkoutProvider extends ChangeNotifier {
         isFullyCompleted = false;
       } else {
         hasAnyActivity = true;
+        if (sets.any((workoutSet) => !workoutSet.isSkipped)) {
+          isFullySkipped = false;
+        }
       }
     }
     WorkoutStatus newStatus;
 
     if (!hasAnyActivity) {
-      // Case A: Planned (User just peeked, didn't open any exercise accordion)
+      // Case A: Planned (User just peeked, didn't log any exercise accordion)
       activeWorkout!.status == WorkoutStatus.skipped
           ? newStatus = WorkoutStatus.skipped
           : newStatus = WorkoutStatus.planned;
-    } else if (isFullyCompleted) {
+    } else if (isFullyCompleted && !isFullySkipped) {
       // Case B: Completed (All exercises have valid data)
       newStatus = WorkoutStatus.completed;
+    } else if (isFullySkipped) {
+      // Case C: Skipped (All exercises are skipped)
+      newStatus = WorkoutStatus.skipped;
     } else {
-      // Case C: In Progress (Some exercises touched, or touched but left empty)
+      // Case D: In Progress (Some exercises touched, or touched but left empty)
       newStatus = WorkoutStatus.inProgress;
     }
 
     activeWorkout!.status = newStatus;
     await _isarService.saveWorkout(activeWorkout!);
 
-    // --- STEP 4: TRIGGER PLAN LOGIC (If Completed) ---
-    if (newStatus == WorkoutStatus.completed ||
-        newStatus == WorkoutStatus.inProgress) {
-      _planProvider.updateDayMapping(
-        activeWorkout!.planDay.value!,
-        activeWorkout!,
-      );
-    }
+    _planProvider.updateDayMapping(
+      activeWorkout!.planDay.value!,
+      activeWorkout!,
+    );
+    _planProvider.checkAndUpdateWeekCompletion();
 
+    clearActiveWorkout();
+  }
+
+  void clearActiveWorkout() {
     activeWorkout = null;
     lastWorkout = null;
     lastCycleWorkout = null;
+    currentCompletion = 0.0;
     lastCycleWorkoutSets.clear();
     lastWorkoutSets.clear();
     loggedSets.clear();
@@ -255,6 +292,24 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   //Helper methods:
+  void _calculateWorkoutProgress() {
+    if (loggedSets.values.isEmpty) {
+      currentCompletion = 0.0;
+      return;
+    }
+
+    final totalExercises = workoutExercises.length;
+
+    int completedExercises = 0;
+    for (final entry in loggedSets.values) {
+      if (entry.isNotEmpty) {
+        completedExercises++;
+      }
+    }
+
+    currentCompletion = completedExercises / totalExercises;
+  }
+
   Future<Map<int, List<WorkoutSet>>> _fetchWorkoutSetsForWorkout(
     Workout? workout,
   ) async {

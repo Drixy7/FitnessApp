@@ -13,7 +13,6 @@ class StatusCard extends StatelessWidget {
     final textThemes = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
 
-    // Helper logic for the week picker
     void showWeekPicker() async {
       if (planProvider.activeSession == null) return;
 
@@ -43,7 +42,6 @@ class StatusCard extends StatelessWidget {
     final weekNum = planProvider.currentWeekInCycle;
     final cycleNum = planProvider.currentCycle;
     final dateRange = planProvider.formattedDateRange;
-    // Ensure completion is between 0.0 and 1.0 to prevent rendering errors
     final completion = planProvider.currentCompletion.clamp(0.0, 1.0);
 
     return Card(
@@ -78,7 +76,10 @@ class StatusCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton.filledTonal(
-                  onPressed: planProvider.goToPreviousWeek,
+                  onPressed:
+                      planProvider.currentWeekSelection?.selectedTotalWeek == 1
+                      ? null
+                      : planProvider.goToPreviousWeek,
                   icon: const Icon(Icons.chevron_left_rounded),
                   tooltip: "Previous Week",
                 ),
