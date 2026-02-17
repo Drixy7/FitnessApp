@@ -55,7 +55,7 @@ class IsarService {
     });
   }
 
-  Future<void> seedAnyPlan({
+  Future<void> seedPlan({
     required String planName,
     String? description,
     required int weeksPerCycle,
@@ -93,19 +93,20 @@ class IsarService {
       final finalPlan = Plan()
         ..name = planName
         ..description = description
-        ..days.addAll(allPlanDays)
         ..weeksPerCycle = weeksPerCycle
         ..daysPerWeek = workingDays.length
         ..isActive = false
         ..isCustom = false
-        ..difficulty = difficulty;
+        ..difficulty = difficulty
+        ..days.addAll(allPlanDays);
+
       await isar.plans.put(finalPlan);
       await finalPlan.days.save();
     });
   }
 
   Future<void> seedDefaultPlanA() async {
-    await seedAnyPlan(
+    await seedPlan(
       planName: PlanADefinition.name,
       weeksPerCycle: PlanADefinition.weeksPerCycle,
       description: PlanADefinition.description,
@@ -113,6 +114,18 @@ class IsarService {
       dayOrderAndNames: PlanADefinition.dayOrderAndNames,
       difficulty: PlanADefinition.difficulty,
       progressionMap: PlanADefinition.progressionMap,
+    );
+  }
+
+  Future<void> seedDefaultPlanB() async {
+    await seedPlan(
+      planName: PlanBDefinition.name,
+      weeksPerCycle: PlanBDefinition.weeksPerCycle,
+      description: PlanBDefinition.description,
+      blueprintsOfDays: PlanBDefinition.blueprintsOfDays,
+      dayOrderAndNames: PlanBDefinition.dayOrderAndNames,
+      difficulty: PlanBDefinition.difficulty,
+      progressionMap: PlanBDefinition.progressionMap,
     );
   }
 
@@ -266,9 +279,14 @@ class IsarService {
   }
 
   //PlanDay manipulation
-  Future<List<PlanDay>> findDaysForWeek(int weekNumber) async {
+  Future<List<PlanDay>> findDaysForWeek(int weekNumber, Plan plan) async {
     final isar = await db;
-    return isar.planDays.filter().weekNumberEqualTo(weekNumber).findAll();
+    return isar.planDays
+        .filter()
+        .weekNumberEqualTo(weekNumber)
+        .and()
+        .plan((q) => q.idEqualTo(plan.id))
+        .findAll();
   }
 
   //Workout manipulation:
@@ -312,12 +330,18 @@ class IsarService {
   Future<List<Workout>> findWorkoutsForWeek(
     DateTime startOfWeek,
     DateTime endOfWeek,
+    Plan plan,
   ) async {
     final isar = await db;
     final end = endOfWeek
         .add(Duration(days: 1))
         .subtract(Duration(milliseconds: 1));
-    return await isar.workouts.filter().dateBetween(startOfWeek, end).findAll();
+    return await isar.workouts
+        .filter()
+        .dateBetween(startOfWeek, end)
+        .and()
+        .planDay((q) => q.plan((p) => p.idEqualTo(plan.id)))
+        .findAll();
   }
 
   Future<Workout?> findPreviousWorkout(PlanDay day, DateTime beforeDate) async {
@@ -455,11 +479,63 @@ class IsarService {
     });
   }
 
+  Future<List<WeightLog>> findWeightLogsForDateRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    final isar = await db;
+    final entries = await isar.weightLogs
+        .filter()
+        .dateBetween(start, end)
+        .sortByDate()
+        .findAll();
+    return entries;
+  }
+
   // deletes whole database:
   Future<void> clearDatabase() async {
     final isar = await db;
     await isar.writeTxn(() async {
       await isar.clear();
+    });
+  }
+
+  //todo testing methods to remove:
+  // Seeding Weight Data
+  Future<void> seedTestWeightLog() async {
+    final isar = await db;
+
+    final now = DateTime.now();
+    // Normalize to midnight to match your app's logic
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Map format: Days Ago -> Weight (kg)
+    // Includes fluctuations, missing days, and a "cheat day" spike (Day 15)
+    final Map<int, double> rawData = {
+      30: 90.5, 29: 90.2, 28: 90.4, 27: 89.9, 26: 90.1,
+      // 25: Skipped
+      24: 89.8, 23: 89.7, 22: 89.5, 21: 89.6, 20: 89.3,
+      19: 89.4, 18: 89.2,
+      // 17: Skipped
+      16: 89.5, 15: 91.2, // The Spike
+      14: 90.8, 13: 90.1, 12: 89.9,
+      4: 88.6, 3: 88.4, 2: 88.3, 1: 88.0, 0: 87.8,
+    };
+
+    final List<WeightLog> logsToAdd = [];
+
+    rawData.forEach((daysAgo, weightVal) {
+      final date = today.subtract(Duration(days: daysAgo));
+
+      final log = WeightLog()
+        ..date = date
+        ..weight = weightVal;
+
+      logsToAdd.add(log);
+    });
+
+    await isar.writeTxn(() async {
+      await isar.weightLogs.putAll(logsToAdd);
     });
   }
 }

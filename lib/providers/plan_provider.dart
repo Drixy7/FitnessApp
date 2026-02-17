@@ -42,12 +42,18 @@ class PlanProvider extends ChangeNotifier {
   Future<void> endPlanSession() async {
     if (activeSession == null) return;
     isLoading = true;
-    notifyListeners(); //TODO REFACTOR THIS TO USE THE SUNDAY OF THE LAST COUNTED WEEK
+    notifyListeners();
+
     final now = DateTime.now();
-    activeSession!.endDate = DateTime(now.year, now.month, now.day);
+    final today = DateTime(now.year, now.month, now.day);
+    activeSession!.endDate = today
+        .subtract(Duration(days: today.weekday - 1))
+        .add(Duration(days: 6));
+
     await _isarService.savePlanSession(activeSession!);
     _activePlan!.isActive = false;
     await _isarService.savePlan(_activePlan!);
+
     activeSession = null;
     _activePlan = null;
     currentWeekSelection = null;
@@ -180,10 +186,14 @@ class PlanProvider extends ChangeNotifier {
       totalWeek,
       _activePlan!.weeksPerCycle,
     );
-    final planDaysForWeek = await _isarService.findDaysForWeek(weekNumber);
+    final planDaysForWeek = await _isarService.findDaysForWeek(
+      weekNumber,
+      _activePlan!,
+    );
     final workoutsInWeek = await _isarService.findWorkoutsForWeek(
       startOfWeek,
       endOfWeek,
+      _activePlan!,
     );
 
     daysForWeek = {

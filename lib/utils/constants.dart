@@ -117,7 +117,7 @@ List<Exercise> defaultExercises() {
       ..moreInformationURL =
           "https://musclewiki.com/exercise/machine-reverse-fly",
     Exercise()
-      ..name = "face pulls"
+      ..name = "Face pulls"
       ..bodyPart = BodyPart.shoulders
       ..difficulty = Difficulty.beginner
       ..moreInformationURL =
@@ -250,6 +250,12 @@ List<Exercise> defaultExercises() {
       ..difficulty = Difficulty.intermediate
       ..moreInformationURL =
           "https://musclewiki.com/exercise/barbell-romanian-deadlift",
+    Exercise()
+      ..name = "Dumbbell RDL"
+      ..bodyPart = BodyPart.hamstrings
+      ..difficulty = Difficulty.intermediate
+      ..moreInformationURL =
+          "https://musclewiki.com/exercise/dumbbell-romanian-deadlift",
     Exercise()
       ..name = "Seated Leg Curl"
       ..bodyPart = BodyPart.hamstrings
@@ -670,5 +676,174 @@ class PlanADefinition {
       "Cable Rope Pushdown": 1,
       "Cable Bar Curl": 1,
     },
+  };
+}
+
+class PlanBDefinition {
+  static const String name = "Upper, Lower variation";
+  static const String description = "Training for girlies!!";
+  static const int weeksPerCycle = 4;
+  static const Map<int, List<BlueprintEntry>> blueprintsOfDays = {
+    1: [
+      BlueprintEntry(
+        exerciseName: "Barbell Squat",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
+        exerciseName: "Barbell RDL",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Hip Abduction",
+        sets: 2,
+        reps: RepRange.extendedHypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Leg Extensions",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Laying Leg Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Standing Calf Raise",
+        sets: 3,
+        reps: RepRange.extendedHypertrophy,
+      ),
+    ],
+
+    2: [
+      BlueprintEntry(
+        exerciseName: "Bench Press",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(exerciseName: "Dips", sets: 2, reps: RepRange.hypertrophy),
+      BlueprintEntry(
+        exerciseName: "Machine Pec Fly",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Dumbbell Lateral Raises",
+        sets: 2,
+        reps: RepRange.extendedHypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Cable Rope Pushdown",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Crunch",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+    ],
+
+    4: [
+      BlueprintEntry(
+        exerciseName: "Bulgarian Split Squat",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Dumbbell RDL",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Seated Cable Row",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Lat Pulldown",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Reverse fly",
+        sets: 2,
+        reps: RepRange.extendedHypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Preacher Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+    ],
+
+    // --- Day 7 (Upper) ---
+    7: [
+      BlueprintEntry(
+        exerciseName: "Machine Hip Thrust",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
+        exerciseName: "Cable Kickback",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Pull-Ups",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
+        exerciseName: "Dumbbell Shoulder Press",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
+        exerciseName: "Face pulls",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Cable Rope Overhead Triceps Extension",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Dumbbell Hammer Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+    ],
+  };
+
+  static const Map<int, String> dayOrderAndNames = {
+    1: "Legs",
+    2: "Upper - front",
+    4: "FullBody A",
+    7: "FullBody B",
+  };
+
+  static const Difficulty difficulty = Difficulty.intermediate;
+  final List<String> volumeIncrease = [
+    "Barbell Squat",
+    "Bench Press",
+    "Bulgarian Split Squat",
+    "Dumbbell Shoulder Press",
+    "Machine Hip Thrust",
+    "Pull-Ups",
+  ];
+
+  static const Map<int, Map<String, int>> progressionMap = {
+    1: {
+      "Barbell Squat": -1,
+      "Machine Hip Thrust": -1,
+      "Dumbbell Shoulder Press": -1,
+      "Bench Press": -1,
+    },
+    3: {"Pull-Ups": 1},
+    4: {"Pull-Ups": 1},
   };
 }

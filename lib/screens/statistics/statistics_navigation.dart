@@ -1,10 +1,14 @@
+import 'package:fitness_app/providers/statistics_provider.dart';
+import 'package:fitness_app/screens/statistics/body_weight_statistics.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class StatisticsNavigation extends StatelessWidget {
   const StatisticsNavigation({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final statisticsProvider = context.watch<StatisticsProvider>();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -54,8 +58,44 @@ class StatisticsNavigation extends StatelessWidget {
                             theme.colorScheme.primary.withOpacity(0.8),
                           ],
                         ),
-                        onTap: () {
-                          // Navigate to body weight stats
+                        onTap: () async {
+                          final now = DateTime.now();
+                          final rangeStart = DateTime(
+                            now.year,
+                            now.month,
+                            now.day,
+                          ).subtract(Duration(days: 30));
+                          final firstMonday = rangeStart.subtract(
+                            Duration(days: rangeStart.weekday - 1),
+                          );
+                          await statisticsProvider.loadBodyWeightStats(
+                            rangeStart: firstMonday,
+                            rangeEnd: DateTime(
+                              now.year,
+                              now.month,
+                              now.day,
+                              23,
+                              59,
+                              59,
+                            ),
+                          );
+                          if (context.mounted) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => BodyWeightStatsScreen(
+                                  rangeStart: rangeStart,
+                                  rangeEnd: DateTime(
+                                    now.year,
+                                    now.month,
+                                    now.day,
+                                    23,
+                                    59,
+                                    59,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 24),

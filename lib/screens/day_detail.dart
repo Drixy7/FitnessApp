@@ -13,7 +13,9 @@ class DayDetail extends StatelessWidget {
 
   // UX Feature: Simple Dialog to add a global workout note
   void _showNoteDialog(BuildContext context) {
+    final workoutProvider = context.read<WorkoutProvider>();
     final controller = TextEditingController();
+    controller.text = workoutProvider.activeWorkout?.note ?? "";
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -33,7 +35,7 @@ class DayDetail extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
-              // TODO: Save note to Workout model via Provider
+              workoutProvider.addNoteToActiveWorkout(note: controller.text);
               Navigator.pop(ctx);
             },
             child: const Text("Save"),

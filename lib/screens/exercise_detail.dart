@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 
 import '../models/workout_set.dart'; // Needed for input formatters
 
-//TODO Forbid option to access exercise if its skipped => must reverse skip
 class ExerciseDetail extends StatefulWidget {
   final PlanDayExercise planDayExercise;
   const ExerciseDetail({super.key, required this.planDayExercise});

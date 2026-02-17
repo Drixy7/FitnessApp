@@ -43,8 +43,8 @@ class WorkoutProvider extends ChangeNotifier {
       activeWorkout = existingWorkout;
       final sets = activeWorkout?.sets.toList();
       if (sets == null) {
-        throw Exception();
-      } //todo remove later
+        throw Exception("Malicious workout Saved to Database!");
+      }
       _populateLoggedSets(sets);
     } else {
       final targetDate = weekRangeStart.add(
@@ -191,6 +191,11 @@ class WorkoutProvider extends ChangeNotifier {
     loggedSets[exerciseOrder] = [sets.first];
     _calculateWorkoutProgress();
     notifyListeners();
+  }
+
+  void addNoteToActiveWorkout({required String note}) {
+    if (!isWorkoutActive) return;
+    activeWorkout!.note = note;
   }
 
   void addSetToActiveWorkout({

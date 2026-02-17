@@ -17,6 +17,7 @@ dependencies:
   table_calendar: any
   google_fonts: any
   shared_preferences: any
+  week_of_year: any
 
 dev_dependencies:
   flutter_test:
