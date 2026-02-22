@@ -1,5 +1,5 @@
+import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/providers/plan_provider.dart';
-import 'package:fitness_app/utils/datatypes.dart';
 import 'package:fitness_app/widgets/pickers/week_chooser_view.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +24,7 @@ class StatusCard extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: WeekChooserView(
+                  leadingText: "Select a week to view or edit",
                   firstAvailableDate: planProvider.activeSession!.startDate,
                   initialWeekSelection: planProvider.currentWeekSelection,
                 ),

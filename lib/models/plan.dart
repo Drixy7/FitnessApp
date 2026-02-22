@@ -1,4 +1,5 @@
 import 'package:fitness_app/models/plan_day.dart';
+import 'package:fitness_app/models/plan_session.dart';
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:isar_community/isar.dart';
 
@@ -16,4 +17,6 @@ class Plan {
   @enumerated
   late Difficulty difficulty;
   final days = IsarLinks<PlanDay>();
+  @Backlink(to: 'plan')
+  final sessions = IsarLinks<PlanSession>();
 }

@@ -11,6 +11,7 @@ part 'workout.g.dart';
 class Workout {
   Id id = Isar.autoIncrement;
   late DateTime date;
+  int durationInSeconds = 0;
   String? note;
   @enumerated
   WorkoutStatus status = WorkoutStatus.planned;

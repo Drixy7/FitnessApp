@@ -1,9 +1,10 @@
 import 'dart:io';
 
+import 'package:fitness_app/providers/body_weight_statistics_provider.dart';
 import 'package:fitness_app/providers/isar_service.dart';
+import 'package:fitness_app/providers/lifting_statistics_provider.dart';
 import 'package:fitness_app/providers/navigation_provider.dart';
 import "package:fitness_app/providers/plan_provider.dart";
-import 'package:fitness_app/providers/statistics_provider.dart';
 import 'package:fitness_app/providers/theme_provider.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/screens/main_scaffold.dart';
@@ -47,8 +48,11 @@ Future<void> main() async {
         ChangeNotifierProvider<NavigationProvider>.value(
           value: NavigationProvider(),
         ),
-        ChangeNotifierProvider<StatisticsProvider>.value(
-          value: StatisticsProvider(isarService),
+        ChangeNotifierProvider<BodyWeightStatisticsProvider>.value(
+          value: BodyWeightStatisticsProvider(isarService),
+        ),
+        ChangeNotifierProvider<LiftingStatisticsProvider>.value(
+          value: LiftingStatisticsProvider(isarService),
         ),
       ],
       child: MainApp(),

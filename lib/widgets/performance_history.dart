@@ -287,8 +287,8 @@ class PerformanceHistory extends StatelessWidget {
     if (completedSets.isEmpty) return null;
 
     return completedSets.reduce((best, current) {
-      final bestScore = best.weight * best.reps;
-      final currentScore = current.weight * current.reps;
+      final bestScore = best.weight * (1 + best.reps / 30);
+      final currentScore = current.weight * (1 + current.reps / 30);
       return currentScore > bestScore ? current : best;
     });
   }

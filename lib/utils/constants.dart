@@ -1,3 +1,5 @@
+import 'package:fitness_app/models/custom_data_package_models.dart';
+
 import '../models/exercise.dart';
 import 'datatypes.dart';
 

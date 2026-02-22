@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/models/plan_session.dart';
 import 'package:fitness_app/models/workout.dart';

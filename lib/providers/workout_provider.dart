@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/models/workout.dart';
@@ -17,12 +18,14 @@ class WorkoutProvider extends ChangeNotifier {
   Workout? lastCycleWorkout;
 
   bool get isWorkoutActive => activeWorkout != null;
+  bool _isFinishing = false;
   Map<int, List<WorkoutSet>> loggedSets =
       {}; // Int represents orderIndex of pde
   Map<int, List<WorkoutSet>> lastWorkoutSets = {};
   Map<int, List<WorkoutSet>> lastCycleWorkoutSets = {};
   List<PlanDayExercise> workoutExercises = [];
   double currentCompletion = 0;
+  int stopwatchInSeconds = 0;
 
   late DateTime weekRangeStart;
   late DateTime weekRangeEnd;
@@ -41,11 +44,9 @@ class WorkoutProvider extends ChangeNotifier {
     );
     if (existingWorkout != null) {
       activeWorkout = existingWorkout;
-      final sets = activeWorkout?.sets.toList();
-      if (sets == null) {
-        throw Exception("Malicious workout Saved to Database!");
-      }
-      _populateLoggedSets(sets);
+      stopwatchInSeconds = existingWorkout.durationInSeconds;
+      final sets = existingWorkout.sets.toList();
+      loggedSets = _populateLoggedSets(sets);
     } else {
       final targetDate = weekRangeStart.add(
         Duration(days: planDay.dayOrder - 1),
@@ -67,6 +68,20 @@ class WorkoutProvider extends ChangeNotifier {
     _calculateWorkoutProgress();
 
     notifyListeners();
+  }
+
+  Future<WorkoutSummaryData> getHistoricalDataForWorkout(
+    Workout pastWorkout,
+  ) async {
+    final exercises = await _fetchExercisesForWorkout(pastWorkout);
+    final sets = pastWorkout.sets.toList();
+    final historicalSets = _populateLoggedSets(sets);
+
+    return WorkoutSummaryData(
+      workout: pastWorkout,
+      exercises: exercises,
+      workoutSets: historicalSets,
+    );
   }
 
   Future<void> skipWorkout(Workout? workout, PlanDay planDay) async {
@@ -236,10 +251,22 @@ class WorkoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateWorkoutDuration(int newDuration) async {
+    if (!isWorkoutActive) return; //user already saved time
+    activeWorkout!.durationInSeconds = newDuration;
+    await _isarService.saveWorkout(activeWorkout!);
+  }
+
+  void updateStopwatchSilently(int seconds) {
+    stopwatchInSeconds = seconds;
+  }
+
   Future<void> finishWorkout() async {
-    if (!isWorkoutActive) {
-      throw Exception("No workout Active -> finish Workout");
+    if (!isWorkoutActive || _isFinishing) {
+      return;
     }
+    _isFinishing = true;
+    final currentWorkout = activeWorkout!;
     bool hasAnyActivity = false;
     bool isFullyCompleted = true;
     bool isFullySkipped = true;
@@ -273,8 +300,9 @@ class WorkoutProvider extends ChangeNotifier {
       newStatus = WorkoutStatus.inProgress;
     }
 
-    activeWorkout!.status = newStatus;
-    await _isarService.saveWorkout(activeWorkout!);
+    currentWorkout.status = newStatus;
+    currentWorkout.durationInSeconds = stopwatchInSeconds;
+    await _isarService.saveWorkout(currentWorkout);
 
     _planProvider.updateDayMapping(
       activeWorkout!.planDay.value!,
@@ -383,27 +411,30 @@ class WorkoutProvider extends ChangeNotifier {
     return result;
   }
 
-  void _populateLoggedSets(List<WorkoutSet> workoutSets) {
+  Map<int, List<WorkoutSet>> _populateLoggedSets(List<WorkoutSet> workoutSets) {
     if (!isWorkoutActive) {
       throw Exception("Do not invoke while there is no workout active");
     }
+    Map<int, List<WorkoutSet>> result = {};
 
     for (WorkoutSet w in workoutSets) {
       final exercise = w.exercise.value;
       if (exercise != null) {
         final int index = exercise.orderIndex;
-        if (!loggedSets.containsKey(index)) {
-          loggedSets[index] = [];
+        if (!result.containsKey(index)) {
+          result[index] = [];
         }
-        loggedSets[index]!.add(w);
+        result[index]!.add(w);
       } else {
         throw Exception("Database inconsistency");
       }
     }
 
-    for (var sets in loggedSets.values) {
+    for (var sets in result.values) {
       sets.sort((a, b) => a.setNumber.compareTo(b.setNumber));
     }
+
+    return result;
   }
 
   bool _isValidPerformance((double, int)? performance) {

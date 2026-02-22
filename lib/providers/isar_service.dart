@@ -1,3 +1,4 @@
+import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
@@ -209,6 +210,41 @@ class IsarService {
   Future<List<Plan>> findAllPlans() async {
     final isar = await db;
     return isar.plans.where().findAll();
+  }
+
+  Future<List<Plan>> findAllValidPlans() async {
+    final isar = await db;
+    return isar.plans.filter().sessionsIsNotEmpty().findAll();
+  }
+
+  Stream<void> watchPlanChanges() async* {
+    final isar = await db;
+    //notifies watcher after change in table Plans
+    yield* isar.plans.watchLazy();
+  }
+
+  Future<List<Exercise>> findExercisesForPlan(Plan plan) async {
+    await plan.days.load();
+    final allDays = plan.days.toList();
+    final filteredDays = allDays.where((day) => day.weekNumber == 1);
+    final List<Exercise> uniqueExercises = [];
+    final Set<int> idsOfAddedExercises = {};
+
+    for (final day in filteredDays) {
+      await day.exercises.load();
+      final allExercises = day.exercises.toList();
+      for (final exercise in allExercises) {
+        await exercise.exercise.load();
+        final realExercise = exercise.exercise.value;
+
+        if (realExercise != null &&
+            !idsOfAddedExercises.contains(realExercise.id)) {
+          idsOfAddedExercises.add(realExercise.id);
+          uniqueExercises.add(realExercise);
+        }
+      }
+    }
+    return uniqueExercises;
   }
 
   Future<void> savePlan(Plan plan) async {

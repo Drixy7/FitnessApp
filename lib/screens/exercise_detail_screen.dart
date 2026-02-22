@@ -7,15 +7,15 @@ import 'package:provider/provider.dart';
 
 import '../models/workout_set.dart'; // Needed for input formatters
 
-class ExerciseDetail extends StatefulWidget {
+class ExerciseDetailScreen extends StatefulWidget {
   final PlanDayExercise planDayExercise;
-  const ExerciseDetail({super.key, required this.planDayExercise});
+  const ExerciseDetailScreen({super.key, required this.planDayExercise});
 
   @override
-  State<ExerciseDetail> createState() => _ExerciseDetailState();
+  State<ExerciseDetailScreen> createState() => _ExerciseDetailScreenState();
 }
 
-class _ExerciseDetailState extends State<ExerciseDetail> {
+class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   List<TextEditingController> _weightControllers = [];
   List<TextEditingController> _repsControllers = [];
   Map<int, (double, int)> _loggedSets = {};

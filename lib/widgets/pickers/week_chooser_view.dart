@@ -1,4 +1,4 @@
-import 'package:fitness_app/utils/datatypes.dart';
+import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
@@ -6,12 +6,14 @@ class WeekChooserView extends StatefulWidget {
   final DateTime firstAvailableDate;
   final DateTime? lastAvailableDate;
   final WeekSelectionResult? initialWeekSelection;
+  final String leadingText;
 
   const WeekChooserView({
     super.key,
     required this.firstAvailableDate,
     this.initialWeekSelection,
     this.lastAvailableDate,
+    required this.leadingText,
   });
 
   @override
@@ -76,6 +78,8 @@ class _WeekChooserViewState extends State<WeekChooserView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        Text(widget.leadingText, style: textStyles.headlineMedium),
+        SizedBox(height: 30),
         Container(
           padding: const EdgeInsetsGeometry.all(10),
           decoration: BoxDecoration(

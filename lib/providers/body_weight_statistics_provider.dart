@@ -1,10 +1,10 @@
+import 'package:fitness_app/models/body_weight_statistics_models.dart';
 import 'package:fitness_app/models/weight_log.dart';
 import 'package:fitness_app/providers/isar_service.dart';
-import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 import 'package:week_of_year/week_of_year.dart';
 
-class StatisticsProvider extends ChangeNotifier {
+class BodyWeightStatisticsProvider extends ChangeNotifier {
   final IsarService _isarService;
 
   // -- STATE --
@@ -12,18 +12,32 @@ class StatisticsProvider extends ChangeNotifier {
   List<WeeklyWeightSegment> _allWeeklySegments = [];
   List<WeeklyWeightSegment> _validWeeklySegments = [];
   WeightSummary _summary = WeightSummary();
+  DateTime rangeStart;
+  DateTime rangeEnd;
 
   List<WeeklyWeightSegment> get allWeeklySegments => _allWeeklySegments;
   List<WeeklyWeightSegment> get validWeeklySegments => _validWeeklySegments;
 
   WeightSummary get summary => _summary;
 
-  StatisticsProvider(this._isarService);
+  BodyWeightStatisticsProvider(this._isarService)
+    : rangeEnd = DateTime.now(),
+      rangeStart = DateTime.now() {
+    final now = DateTime.now();
 
-  Future<void> loadBodyWeightStats({
-    required DateTime rangeStart,
-    required DateTime rangeEnd,
-  }) async {
+    rangeEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+
+    final thirtyDaysAgo = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(const Duration(days: 30));
+    rangeStart = thirtyDaysAgo.subtract(
+      Duration(days: thirtyDaysAgo.weekday - 1),
+    );
+  }
+
+  Future<void> loadBodyWeightStats() async {
     isLoading = true;
     notifyListeners();
     final rawLogs = await _isarService.findWeightLogsForDateRange(
@@ -34,6 +48,16 @@ class StatisticsProvider extends ChangeNotifier {
     _summary = _calculateSummary(rawLogs, _validWeeklySegments);
     isLoading = false;
     notifyListeners();
+  }
+
+  Future<void> updateDateRange(DateTime start, DateTime end) async {
+    rangeStart = DateTime(
+      start.year,
+      start.month,
+      start.day,
+    ).subtract(Duration(days: start.weekday - 1));
+    rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    await loadBodyWeightStats();
   }
 
   void _calculateWeeklySegments(
@@ -108,7 +132,16 @@ class StatisticsProvider extends ChangeNotifier {
     List<WeightLog> allLogs,
     List<WeeklyWeightSegment> segments,
   ) {
-    // Min/Max z celého rozsahu
+    //todo předělat aby mohl min a max být nula, když nejsou data + vylepšit průměrný gain vzorec... + nějak přidat streak!
+    if (segments.isEmpty) {
+      return WeightSummary(
+        lowestInRange: 0,
+        highestInRange: 0,
+        averageWeeklyChange: 0,
+        startWeight: 0,
+        currentWeight: 0,
+      );
+    }
     double globalMin = segments
         .map((e) => e.minWeight)
         .reduce((a, b) => a < b ? a : b);
@@ -135,11 +168,7 @@ class StatisticsProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> updateSingleLog(
-    WeightLog updatedLog,
-    DateTime rangeStart,
-    DateTime rangeEnd,
-  ) async {
+  Future<void> updateSingleLog(WeightLog updatedLog) async {
     final weekKey = (updatedLog.date.year * 100) + updatedLog.date.weekOfYear;
     final segment = _findWeekSegmentToUpdate(
       weekKey,
@@ -149,10 +178,7 @@ class StatisticsProvider extends ChangeNotifier {
     );
 
     if (segment == null) {
-      return await loadBodyWeightStats(
-        rangeStart: rangeStart,
-        rangeEnd: rangeEnd,
-      );
+      return await loadBodyWeightStats();
     }
     final index = segment.dailyLogs.indexWhere((l) => l.id == updatedLog.id);
 

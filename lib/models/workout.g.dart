@@ -18,9 +18,14 @@ const WorkoutSchema = CollectionSchema(
   id: 1535508263686820971,
   properties: {
     r'date': PropertySchema(id: 0, name: r'date', type: IsarType.dateTime),
-    r'note': PropertySchema(id: 1, name: r'note', type: IsarType.string),
+    r'durationInSeconds': PropertySchema(
+      id: 1,
+      name: r'durationInSeconds',
+      type: IsarType.long,
+    ),
+    r'note': PropertySchema(id: 2, name: r'note', type: IsarType.string),
     r'status': PropertySchema(
-      id: 2,
+      id: 3,
       name: r'status',
       type: IsarType.byte,
       enumMap: _WorkoutstatusEnumValueMap,
@@ -83,8 +88,9 @@ void _workoutSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeDateTime(offsets[0], object.date);
-  writer.writeString(offsets[1], object.note);
-  writer.writeByte(offsets[2], object.status.index);
+  writer.writeLong(offsets[1], object.durationInSeconds);
+  writer.writeString(offsets[2], object.note);
+  writer.writeByte(offsets[3], object.status.index);
 }
 
 Workout _workoutDeserialize(
@@ -95,10 +101,11 @@ Workout _workoutDeserialize(
 ) {
   final object = Workout();
   object.date = reader.readDateTime(offsets[0]);
+  object.durationInSeconds = reader.readLong(offsets[1]);
   object.id = id;
-  object.note = reader.readStringOrNull(offsets[1]);
+  object.note = reader.readStringOrNull(offsets[2]);
   object.status =
-      _WorkoutstatusValueEnumMap[reader.readByteOrNull(offsets[2])] ??
+      _WorkoutstatusValueEnumMap[reader.readByteOrNull(offsets[3])] ??
       WorkoutStatus.planned;
   return object;
 }
@@ -113,8 +120,10 @@ P _workoutDeserializeProp<P>(
     case 0:
       return (reader.readDateTime(offset)) as P;
     case 1:
-      return (reader.readStringOrNull(offset)) as P;
+      return (reader.readLong(offset)) as P;
     case 2:
+      return (reader.readStringOrNull(offset)) as P;
+    case 3:
       return (_WorkoutstatusValueEnumMap[reader.readByteOrNull(offset)] ??
               WorkoutStatus.planned)
           as P;
@@ -286,6 +295,61 @@ extension WorkoutQueryFilter
       return query.addFilterCondition(
         FilterCondition.between(
           property: r'date',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition>
+  durationInSecondsEqualTo(int value) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'durationInSeconds', value: value),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition>
+  durationInSecondsGreaterThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'durationInSeconds',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition>
+  durationInSecondsLessThan(int value, {bool include = false}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'durationInSeconds',
+          value: value,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterFilterCondition>
+  durationInSecondsBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'durationInSeconds',
           lower: lower,
           includeLower: includeLower,
           upper: upper,
@@ -684,6 +748,18 @@ extension WorkoutQuerySortBy on QueryBuilder<Workout, Workout, QSortBy> {
     });
   }
 
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByDurationInSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationInSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> sortByDurationInSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationInSeconds', Sort.desc);
+    });
+  }
+
   QueryBuilder<Workout, Workout, QAfterSortBy> sortByNote() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'note', Sort.asc);
@@ -720,6 +796,18 @@ extension WorkoutQuerySortThenBy
   QueryBuilder<Workout, Workout, QAfterSortBy> thenByDateDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'date', Sort.desc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByDurationInSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationInSeconds', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Workout, Workout, QAfterSortBy> thenByDurationInSecondsDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'durationInSeconds', Sort.desc);
     });
   }
 
@@ -768,6 +856,12 @@ extension WorkoutQueryWhereDistinct
     });
   }
 
+  QueryBuilder<Workout, Workout, QDistinct> distinctByDurationInSeconds() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'durationInSeconds');
+    });
+  }
+
   QueryBuilder<Workout, Workout, QDistinct> distinctByNote({
     bool caseSensitive = true,
   }) {
@@ -794,6 +888,12 @@ extension WorkoutQueryProperty
   QueryBuilder<Workout, DateTime, QQueryOperations> dateProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'date');
+    });
+  }
+
+  QueryBuilder<Workout, int, QQueryOperations> durationInSecondsProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'durationInSeconds');
     });
   }
 

@@ -5,7 +5,7 @@ import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../screens/exercise_detail.dart';
+import '../screens/exercise_detail_screen.dart';
 
 class ExerciseCard extends StatelessWidget {
   final PlanDayExercise planDayExercise;
@@ -173,7 +173,7 @@ class ExerciseCard extends StatelessWidget {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) =>
-              ExerciseDetail(planDayExercise: planDayExercise),
+              ExerciseDetailScreen(planDayExercise: planDayExercise),
         ),
       );
     }

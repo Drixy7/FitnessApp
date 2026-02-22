@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 //import 'package:url_launcher/url_launcher.dart';
 
-class DayDetail extends StatelessWidget {
-  const DayDetail({super.key});
+class DayDetailScreen extends StatelessWidget {
+  const DayDetailScreen({super.key});
 
   // UX Feature: Simple Dialog to add a global workout note
   void _showNoteDialog(BuildContext context) {
@@ -59,10 +59,14 @@ class DayDetail extends StatelessWidget {
     final exercises = workoutProvider.workoutExercises;
 
     return PopScope(
-      canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, result) {
+        if (didPop) return;
+        if (workoutProvider.isWorkoutActive) {
           workoutProvider.finishWorkout();
+        }
+        if (context.mounted) {
+          Navigator.of(context).pop(result);
         }
       },
       child: Scaffold(
@@ -73,7 +77,11 @@ class DayDetail extends StatelessWidget {
                 activeWorkout.planDay.value?.name ?? "Workout",
                 style: textStyles.titleMedium,
               ),
-              const WorkoutTimer(),
+              WorkoutTimer(
+                initialSeconds: activeWorkout.durationInSeconds,
+                onSave: workoutProvider.updateWorkoutDuration,
+                onTick: workoutProvider.updateStopwatchSilently,
+              ),
             ],
           ),
           centerTitle: true,
@@ -84,9 +92,9 @@ class DayDetail extends StatelessWidget {
               onPressed: () => _showNoteDialog(context),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                context.read<WorkoutProvider>().finishWorkout();
+                await context.read<WorkoutProvider>().finishWorkout();
               },
               style: TextButton.styleFrom(foregroundColor: colors.error),
               child: const Text("FINISH"),

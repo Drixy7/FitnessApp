@@ -5,10 +5,20 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../models/plan_day_exercise.dart';
+import '../models/workout.dart';
 import '../models/workout_set.dart';
 
-class WorkoutSummary extends StatelessWidget {
-  const WorkoutSummary({super.key});
+class WorkoutSummaryScreen extends StatelessWidget {
+  final Workout workout;
+  final List<PlanDayExercise> exercises;
+  final Map<int, List<WorkoutSet>> workoutSets;
+
+  const WorkoutSummaryScreen({
+    super.key,
+    required this.workout,
+    required this.exercises,
+    required this.workoutSets,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,37 +42,25 @@ class WorkoutSummary extends StatelessWidget {
       );
     }
 
-    final workout = workoutProvider.activeWorkout!;
-    final exercises = workoutProvider.workoutExercises;
-    final workoutSets = workoutProvider.loggedSets;
-
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          workoutProvider.clearActiveWorkout();
-        }
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            "${_formatDate(workout.date)} - ${workout.planDay.value?.name}",
-          ),
-          backgroundColor: theme.colorScheme.surface,
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "${_formatDate(workout.date)} - ${workout.planDay.value?.name}",
         ),
-        body: exercises.isEmpty
-            ? const Center(child: Text('No exercises in this workout'))
-            : ListView.separated(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: exercises.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final exercise = exercises[index];
-                  final sets = workoutSets[exercise.orderIndex] ?? [];
-                  return _ExerciseCard(exercise: exercise, sets: sets);
-                },
-              ),
+        backgroundColor: theme.colorScheme.surface,
       ),
+      body: exercises.isEmpty
+          ? const Center(child: Text('No exercises in this workout'))
+          : ListView.separated(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: exercises.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final exercise = exercises[index];
+                final sets = workoutSets[exercise.orderIndex] ?? [];
+                return _ExerciseCard(exercise: exercise, sets: sets);
+              },
+            ),
     );
   }
 

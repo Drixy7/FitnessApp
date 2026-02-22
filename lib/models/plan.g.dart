@@ -56,6 +56,13 @@ const PlanSchema = CollectionSchema(
       target: r'PlanDay',
       single: false,
     ),
+    r'sessions': LinkSchema(
+      id: 3868871819999466858,
+      name: r'sessions',
+      target: r'PlanSession',
+      single: false,
+      linkName: r'plan',
+    ),
   },
   embeddedSchemas: {},
 
@@ -160,12 +167,18 @@ Id _planGetId(Plan object) {
 }
 
 List<IsarLinkBase<dynamic>> _planGetLinks(Plan object) {
-  return [object.days];
+  return [object.days, object.sessions];
 }
 
 void _planAttach(IsarCollection<dynamic> col, Id id, Plan object) {
   object.id = id;
   object.days.attach(col, col.isar.collection<PlanDay>(), r'days', id);
+  object.sessions.attach(
+    col,
+    col.isar.collection<PlanSession>(),
+    r'sessions',
+    id,
+  );
 }
 
 extension PlanQueryWhereSort on QueryBuilder<Plan, Plan, QWhere> {
@@ -862,6 +875,69 @@ extension PlanQueryLinks on QueryBuilder<Plan, Plan, QFilterCondition> {
     return QueryBuilder.apply(this, (query) {
       return query.linkLength(
         r'days',
+        lower,
+        includeLower,
+        upper,
+        includeUpper,
+      );
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessions(
+    FilterQuery<PlanSession> q,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.link(q, r'sessions');
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsLengthEqualTo(
+    int length,
+  ) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', length, true, length, true);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, true, 0, true);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, false, 999999, true);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsLengthLessThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', 0, true, length, include);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsLengthGreaterThan(
+    int length, {
+    bool include = false,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(r'sessions', length, include, 999999, true);
+    });
+  }
+
+  QueryBuilder<Plan, Plan, QAfterFilterCondition> sessionsLengthBetween(
+    int lower,
+    int upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.linkLength(
+        r'sessions',
         lower,
         includeLower,
         upper,

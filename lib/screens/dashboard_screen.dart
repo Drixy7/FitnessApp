@@ -1,16 +1,16 @@
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/providers/plan_provider.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
-import 'package:fitness_app/screens/day_detail.dart';
-import 'package:fitness_app/screens/workout_summary.dart';
+import 'package:fitness_app/screens/day_detail_screen.dart';
+import 'package:fitness_app/screens/workout_summary_screen.dart';
 import 'package:fitness_app/widgets/status_card.dart';
 import 'package:fitness_app/widgets/training_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 //TODO Design this to be prettier + IMPLEMENT VISUAL EFFECTS OF WORKOUT STATUS. + Implement visual difference of completed week
-class Dashboard extends StatelessWidget {
-  const Dashboard({super.key});
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class Dashboard extends StatelessWidget {
       await workoutProvider.getOrCreateWorkoutForDay(day);
       if (context.mounted) {
         Navigator.of(context).push(
-          MaterialPageRoute(builder: (context) => const DayDetail()),
+          MaterialPageRoute(builder: (context) => const DayDetailScreen()),
         );
       }
     }
@@ -47,11 +47,17 @@ class Dashboard extends StatelessWidget {
                           workout: workout,
                           onShowInfo: () {},
                           onShowStats: () async {
-                            await workoutProvider.getOrCreateWorkoutForDay(day);
+                            if (workout == null) return;
+                            final data = await workoutProvider
+                                .getHistoricalDataForWorkout(workout);
                             if (context.mounted) {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
-                                  builder: (context) => WorkoutSummary(),
+                                  builder: (context) => WorkoutSummaryScreen(
+                                    workout: workout,
+                                    workoutSets: data.workoutSets,
+                                    exercises: data.exercises,
+                                  ),
                                 ),
                               );
                             }
