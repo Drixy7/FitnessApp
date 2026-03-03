@@ -167,7 +167,8 @@ class PlanProvider extends ChangeNotifier {
   }
 
   void goToPreviousWeek() async {
-    if (currentWeekSelection != null) {
+    if (currentWeekSelection != null &&
+        currentWeekSelection?.selectedTotalWeek != 1) {
       await _updateForWeek(currentWeekSelection!.selectedTotalWeek - 1);
       notifyListeners();
     }

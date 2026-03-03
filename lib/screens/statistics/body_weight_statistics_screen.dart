@@ -343,7 +343,7 @@ class _BodyWeightStatisticsScreenState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${DateFormat("MMM d ''yy ").format(segment.startDate)} - ${DateFormat("MMM d ''yy ").format(segment.endDate)}",
+                  "${DateFormat("MMM d ").format(segment.startDate)} - ${DateFormat("MMM d").format(segment.endDate)}",
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Chip(
@@ -372,7 +372,7 @@ class _BodyWeightStatisticsScreenState
                 titleAlignment: ListTileTitleAlignment.center,
                 minLeadingWidth: 210,
                 leading: Text(
-                  DateFormat("EEE - MMM d").format(dayDate),
+                  DateFormat("EEE - d.M").format(dayDate),
                   style: theme.textTheme.labelMedium,
                 ),
                 title: log != null

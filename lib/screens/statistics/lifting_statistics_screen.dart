@@ -6,7 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/lifting_statistics_provider.dart';
-//todo přepsat, přidat bottomSheet pro filtrování tréninků jako transakcí v bance, přidat statistiky podle modelů
+//todo přepsat, přidat bottomSheet pro filtrování tréninků jako transakcí v bance
 
 class LiftingStatisticsScreen extends StatelessWidget {
   const LiftingStatisticsScreen({super.key});
@@ -91,11 +91,13 @@ class LiftingStatisticsScreen extends StatelessWidget {
                                   ? _ProgressCard(
                                       gain: exerciseSummary.progress!,
                                     )
-                                  : _NoDataCard(
-                                      message:
-                                          "Not enough data for progression statistics",
-                                    ),
-                              const SizedBox(height: 24),
+                                  : const SizedBox(height: 10),
+                              exerciseSummary.progress != null
+                                  ? const SizedBox(height: 10)
+                                  : const SizedBox(height: 0),
+                              _ExerciseSkipCard(
+                                skippedCount: exerciseSummary.skippedCount,
+                              ),
                             ],
                           ),
                 ],
@@ -270,10 +272,6 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// SECTION DIVIDER
-// ---------------------------------------------------------------------------
-
 class _SectionDivider extends StatelessWidget {
   final String label;
   const _SectionDivider({required this.label});
@@ -392,20 +390,13 @@ class _ExerciseSelector extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// BEST SET CARD
-// ---------------------------------------------------------------------------
-
 class _BestSetCard extends StatelessWidget {
-  final WorkoutSet? set;
+  final WorkoutSet set;
   const _BestSetCard({required this.set});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (set == null) {
-      return _NoDataCard();
-    } //todo refactor
     return _DetailCard(
       child: Row(
         children: [
@@ -451,7 +442,7 @@ class _BestSetCard extends StatelessWidget {
   }
 }
 
-class _OneRMCard extends StatelessWidget {
+class _OneRMCard extends StatefulWidget {
   final bool isEstimated;
   final double weight;
   final WorkoutSet? maxSet;
@@ -463,15 +454,31 @@ class _OneRMCard extends StatelessWidget {
   });
 
   @override
+  State<_OneRMCard> createState() => _OneRMCardState();
+}
+
+class _OneRMCardState extends State<_OneRMCard> {
+  late bool _showVerified;
+
+  @override
+  void initState() {
+    super.initState();
+    // Default to verified view if a real 1RM set exists
+    _showVerified = widget.maxSet != null && !widget.isEstimated;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Gold palette that works in both light & dark
+    final bool canShowVerified = widget.maxSet != null;
+    // If verified toggle is on AND real data exists → treat as gold
+    final bool isGold = _showVerified && canShowVerified;
+
     const goldLight = Color(0xFFFFF8E1);
     const goldDark = Color(0xFF3E2E00);
     const goldBorder = Color(0xFFFFCA28);
 
-    final isGold = !isEstimated;
     final cardColor = isGold
         ? (theme.brightness == Brightness.dark ? goldDark : goldLight)
         : theme.colorScheme.surfaceContainerLow;
@@ -479,6 +486,10 @@ class _OneRMCard extends StatelessWidget {
         ? goldBorder
         : theme.colorScheme.outlineVariant.withValues(alpha: 0.4);
     final iconColor = isGold ? const Color(0xFFFFB300) : Colors.blueAccent;
+
+    final displayWeight = isGold
+        ? widget.maxSet!.weight.toString()
+        : widget.weight.toStringAsFixed(2);
 
     return Card(
       elevation: isGold ? 2 : 0,
@@ -489,77 +500,135 @@ class _OneRMCard extends StatelessWidget {
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                isGold ? '🏆' : '⚡',
-                style: const TextStyle(fontSize: 20),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    isGold ? '🏆' : '⚡',
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        isGold ? 'True 1RM' : 'Estimated 1RM',
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: isGold
-                              ? const Color(0xFFB8860B)
-                              : theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      if (isGold) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: goldBorder.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'VERIFIED',
+                      Row(
+                        children: [
+                          Text(
+                            isGold ? 'True 1RM' : 'Estimated 1RM',
                             style: theme.textTheme.labelMedium?.copyWith(
-                              color: const Color(0xFFB8860B),
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.8,
+                              color: isGold
+                                  ? const Color(0xFFB8860B)
+                                  : theme.colorScheme.onSurfaceVariant,
                             ),
                           ),
+                          if (isGold) ...[
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: goldBorder.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                'VERIFIED',
+                                style: theme.textTheme.labelMedium?.copyWith(
+                                  color: const Color(0xFFB8860B),
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      Text(
+                        displayWeight,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: isGold ? const Color(0xFF7A5800) : null,
                         ),
-                      ],
+                      ),
+                      if (isGold && widget.maxSet?.workout.value != null)
+                        Text(
+                          DateFormat(
+                            "yMMMd",
+                          ).format(widget.maxSet!.workout.value!.date),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFFB8860B),
+                          ),
+                        ),
                     ],
                   ),
-                  Text(
-                    isEstimated
-                        ? weight.toStringAsFixed(2)
-                        : maxSet!.weight.toString(),
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: isGold ? const Color(0xFF7A5800) : null,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Divider(
+              color: isGold
+                  ? goldBorder.withValues(alpha: 0.4)
+                  : theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              height: 1,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.verified_rounded,
+                      size: 16,
+                      color: canShowVerified
+                          ? (isGold
+                                ? const Color(0xFFB8860B)
+                                : theme.colorScheme.onSurfaceVariant)
+                          : theme.colorScheme.onSurfaceVariant.withValues(
+                              alpha: 0.4,
+                            ),
                     ),
-                  ),
-                  if (maxSet != null && maxSet!.workout.value != null)
+                    const SizedBox(width: 6),
                     Text(
-                      DateFormat("yMMMd").format(maxSet!.workout.value!.date),
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: isGold
-                            ? const Color(0xFFB8860B)
-                            : theme.colorScheme.onSurfaceVariant,
+                      canShowVerified
+                          ? 'Show verified 1RM'
+                          : 'No verified 1RM yet',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: canShowVerified
+                            ? (isGold
+                                  ? const Color(0xFFB8860B)
+                                  : theme.colorScheme.onSurfaceVariant)
+                            : theme.colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.4,
+                              ),
                       ),
                     ),
-                ],
-              ),
+                  ],
+                ),
+                Switch(
+                  value: _showVerified,
+                  onChanged: canShowVerified
+                      ? (val) => setState(() => _showVerified = val)
+                      : null,
+                  thumbIcon: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return const Icon(Icons.emoji_events_rounded, size: 16);
+                    }
+                    return const Icon(Icons.bolt_rounded, size: 16);
+                  }),
+                ),
+              ],
             ),
           ],
         ),
@@ -567,10 +636,6 @@ class _OneRMCard extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// PROGRESS CARD
-// ---------------------------------------------------------------------------
 
 class _ProgressCard extends StatelessWidget {
   final double gain;
@@ -580,7 +645,7 @@ class _ProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isPositive = gain.isNegative;
-    final color = isPositive ? Colors.green : theme.colorScheme.error;
+    final color = !isPositive ? Colors.green : theme.colorScheme.error;
 
     return _DetailCard(
       child: Row(
@@ -592,7 +657,7 @@ class _ProgressCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
-              isPositive
+              !isPositive
                   ? Icons.trending_up_rounded
                   : Icons.trending_down_rounded,
               color: color,
@@ -646,6 +711,63 @@ class _DetailCard extends StatelessWidget {
         ),
       ),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _ExerciseSkipCard extends StatelessWidget {
+  final int skippedCount;
+  const _ExerciseSkipCard({required this.skippedCount});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasSkips = skippedCount > 0;
+    final color = hasSkips ? theme.colorScheme.error : Colors.green;
+
+    return _DetailCard(
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              hasSkips
+                  ? Icons.remove_circle_outline_rounded
+                  : Icons.check_circle_outline_rounded,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Times Skipped',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                skippedCount.toString(),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: color,
+                ),
+              ),
+              Text(
+                hasSkips ? 'During this plan' : 'Never skipped',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -8,6 +8,8 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   // --- Helper methods to keep build() clean ---
+  //todo implement better about
+  //todo find yourself an Icon.
 
   void _showPlanDialog(BuildContext context) {
     //Variables for dynamic show of content

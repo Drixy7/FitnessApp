@@ -30,53 +30,67 @@ class DashboardScreen extends StatelessWidget {
       body: Center(
         child: planProvider.isLoading
             ? Center(child: const CircularProgressIndicator())
-            : Column(
-                children: [
-                  SafeArea(child: StatusCard()),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: planProvider.daysForWeek.keys.length,
-                      itemBuilder: (context, index) {
-                        final day = planProvider.daysForWeek.values
-                            .toList()[index]
-                            .$1;
-                        final workout =
-                            planProvider.daysForWeek[day.dayOrder]?.$2;
-                        return TrainingCard(
-                          day: day,
-                          workout: workout,
-                          onShowInfo: () {},
-                          onShowStats: () async {
-                            if (workout == null) return;
-                            final data = await workoutProvider
-                                .getHistoricalDataForWorkout(workout);
-                            if (context.mounted) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => WorkoutSummaryScreen(
-                                    workout: workout,
-                                    workoutSets: data.workoutSets,
-                                    exercises: data.exercises,
+            : GestureDetector(
+                onHorizontalDragEnd: (DragEndDetails details) {
+                  double velocity = details.primaryVelocity ?? 0;
+
+                  if (velocity > 0) {
+                    planProvider.goToPreviousWeek();
+                  } else if (velocity < 0) {
+                    planProvider.goToNextWeek();
+                  }
+                },
+                child: Column(
+                  children: [
+                    SafeArea(child: StatusCard()),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: planProvider.daysForWeek.keys.length,
+                        itemBuilder: (context, index) {
+                          final day = planProvider.daysForWeek.values
+                              .toList()[index]
+                              .$1;
+                          final workout =
+                              planProvider.daysForWeek[day.dayOrder]?.$2;
+                          return TrainingCard(
+                            day: day,
+                            workout: workout,
+                            onShowInfo: () {},
+                            onShowStats: () async {
+                              if (workout == null) return;
+                              final data = await workoutProvider
+                                  .getHistoricalDataForWorkout(workout);
+                              if (context.mounted) {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => WorkoutSummaryScreen(
+                                      workout: workout,
+                                      workoutSets: data.workoutSets,
+                                      exercises: data.exercises,
+                                    ),
                                   ),
-                                ),
+                                );
+                              }
+                            },
+                            onSkip: () async {
+                              await workoutProvider.skipWorkout(workout, day);
+                            },
+                            onUnSkip: () async {
+                              await workoutProvider.unSkipWorkout(
+                                workout!,
+                                day,
                               );
-                            }
-                          },
-                          onSkip: () async {
-                            await workoutProvider.skipWorkout(workout, day);
-                          },
-                          onUnskip: () async {
-                            await workoutProvider.unSkipWorkout(workout!, day);
-                          },
-                          onTap: () {
-                            navigateToDayDetail(day);
-                          },
-                        );
-                      },
+                            },
+                            onTap: () {
+                              navigateToDayDetail(day);
+                            },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 80),
-                ],
+                    SizedBox(height: 80),
+                  ],
+                ),
               ),
       ),
     );

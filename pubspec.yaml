@@ -18,6 +18,7 @@ dependencies:
   google_fonts: any
   shared_preferences: any
   week_of_year: any
+  url_launcher: any
 
 dev_dependencies:
   flutter_test:

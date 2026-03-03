@@ -3,6 +3,8 @@ import 'package:fitness_app/models/workout.dart'; // Ensure enum WorkoutStatus i
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 
+//todo implement url_launcher
+//todo implement warning message before skipping
 class TrainingCard extends StatelessWidget {
   final PlanDay day;
   final Workout? workout; // Nullable: If null, state is "Planned"
@@ -10,7 +12,7 @@ class TrainingCard extends StatelessWidget {
   // -- Actions --
   final VoidCallback onTap; // Main tap (Start workout / View Details)
   final VoidCallback onSkip; // Logic to create skipped workout
-  final VoidCallback onUnskip; // Logic to delete/reset skipped workout
+  final VoidCallback onUnSkip; // Logic to delete/reset skipped workout
   final VoidCallback onShowStats; // Logic to view completed stats
   final VoidCallback onShowInfo; // Logic to show modal with PlanDay details
 
@@ -20,7 +22,7 @@ class TrainingCard extends StatelessWidget {
     required this.workout,
     required this.onTap,
     required this.onSkip,
-    required this.onUnskip,
+    required this.onUnSkip,
     required this.onShowStats,
     required this.onShowInfo,
   });
@@ -169,7 +171,7 @@ class TrainingCard extends StatelessWidget {
           ),
           const Spacer(),
           OutlinedButton.icon(
-            onPressed: onUnskip,
+            onPressed: onUnSkip,
             icon: const Icon(Icons.restore),
             label: const Text("Unskip"),
             style: OutlinedButton.styleFrom(

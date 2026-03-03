@@ -622,3 +622,5 @@ class IsarService {
     });
   }
 }
+
+//todo Implement ALL IN ONE TESTING METHODS for workouts

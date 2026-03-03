@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import '../models/plan.dart';
 import '../models/workout_set.dart';
 
-//todo udělej tady metodu co updatuje ui po výběru v dropboxu, metodu pro výpočty statistik podle modelů
 class LiftingStatisticsProvider extends ChangeNotifier {
   final IsarService _isarService;
   Timer? _debounceTimer;
@@ -69,16 +68,30 @@ class LiftingStatisticsProvider extends ChangeNotifier {
         selectedExercise!,
       );
       if (allSets.isEmpty) {
+        exerciseSummary = null;
         return;
       }
       WorkoutSet? maxSet;
       double oneRepMax = double.minPositive;
       final WorkoutSet firstSet = allSets.first;
-      WorkoutSet bestSet = firstSet;
+      WorkoutSet? bestSet;
       int skippedCount = 0;
       int repClamp;
-      await firstSet.exercise.load();
+      final Map<String, int> exerciseOccurrences = {};
+
       final RepRange setRepRange = firstSet.exercise.value!.targetReps;
+
+      for (final set in allSets) {
+        await set.workout.load();
+        await set.exercise.load();
+
+        final wId = set.workout.value!.id;
+        final eId = set.exercise.value!.id;
+
+        final key = "${wId}_${eId}";
+
+        exerciseOccurrences[key] = (exerciseOccurrences[key] ?? 0) + 1;
+      }
 
       switch (setRepRange) {
         case RepRange.lowRep:
@@ -92,25 +105,38 @@ class LiftingStatisticsProvider extends ChangeNotifier {
         case RepRange.highRep:
           repClamp = 20;
       }
+
       for (final set in allSets) {
+        if (set.isSkipped) {
+          final key = "${set.workout.value!.id}_${set.exercise.value!.id}";
+          final totalSetsForThisExercise = exerciseOccurrences[key]!;
+          if (totalSetsForThisExercise == 1) {
+            skippedCount += set.exercise.value!.targetSets;
+          } else {
+            skippedCount++;
+          }
+          continue;
+        }
         if (set.reps > repClamp) {
           continue;
         }
+
         final erm = set.weight * (1 + set.reps / 30);
         if (erm > oneRepMax) {
           oneRepMax = erm;
           bestSet = set;
         }
         if (set.reps == 1) maxSet = set;
-        if (set.isSkipped) skippedCount++;
       }
-      exerciseSummary = ExerciseSummary(
-        bestSet: bestSet,
-        oneRepMax: oneRepMax,
-        maxSet: maxSet,
-        skippedCount: skippedCount,
-        progress: await _calculateLinearProgress(allSets, repClamp),
-      );
+      bestSet != null
+          ? exerciseSummary = ExerciseSummary(
+              bestSet: bestSet,
+              oneRepMax: oneRepMax,
+              maxSet: maxSet,
+              skippedCount: skippedCount,
+              progress: await _calculateLinearProgress(allSets, repClamp),
+            )
+          : exerciseSummary = null;
     } finally {
       exerciseLoading = false;
       notifyListeners();

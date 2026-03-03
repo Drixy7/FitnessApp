@@ -179,7 +179,8 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           final int index = setNumber - 1;
 
           _weightControllers[index].text = set.weight.toString();
-          _repsControllers[index].text = set.weight.toString();
+          _repsControllers[index].text = set.reps.toString();
+          _loggedSets[setNumber] = (set.weight, set.reps);
         }
       }
     });
@@ -426,6 +427,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                       ),
                     ],
                   ),
+                  SizedBox(height: 50),
                 ],
               ),
             ],
