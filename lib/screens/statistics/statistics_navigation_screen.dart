@@ -1,8 +1,9 @@
 import 'package:fitness_app/providers/lifting_statistics_provider.dart';
 import 'package:fitness_app/screens/statistics/body_weight_statistics_screen.dart';
-import 'package:fitness_app/screens/statistics/lifting_statistics_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'lifting_statistics_screen.dart';
 
 class StatisticsNavigationScreen extends StatelessWidget {
   const StatisticsNavigationScreen({super.key});
@@ -72,7 +73,9 @@ class StatisticsNavigationScreen extends StatelessWidget {
                       _StatCard(
                         icon: Icons.fitness_center_outlined,
                         title: 'Lifting Progress',
-                        subtitle: liftingProvider.isLoading
+                        subtitle:
+                            (liftingProvider.exerciseLoading ||
+                                liftingProvider.planLoading)
                             ? "Loading data..."
                             : (liftingProvider.hasValidPlan
                                   ? 'Analyze your strength gains and performance'
@@ -99,6 +102,7 @@ class StatisticsNavigationScreen extends StatelessWidget {
                                         LiftingStatisticsScreen(),
                                   ),
                                 );
+                                liftingProvider.loadDataForPlan();
                               }
                             : null,
                       ),

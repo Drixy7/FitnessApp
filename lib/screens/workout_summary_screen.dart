@@ -1,8 +1,6 @@
-import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/widgets/performance_history.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 
 import '../models/plan_day_exercise.dart';
 import '../models/workout.dart';
@@ -22,23 +20,15 @@ class WorkoutSummaryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final workoutProvider = context.watch<WorkoutProvider>();
     final theme = Theme.of(context);
 
-    if (workoutProvider.activeWorkout == null) {
-      return PopScope(
-        onPopInvokedWithResult: (didPop, result) {
-          if (didPop) {
-            workoutProvider.clearActiveWorkout();
-          }
-        },
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text('Workout Summary'),
-            backgroundColor: theme.colorScheme.surface,
-          ),
-          body: const Center(child: Text('No workout data available')),
+    if (workoutSets.isEmpty || exercises.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Workout Summary'),
+          backgroundColor: theme.colorScheme.surface,
         ),
+        body: const Center(child: Text('No workout data available')),
       );
     }
 

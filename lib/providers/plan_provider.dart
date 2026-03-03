@@ -29,38 +29,41 @@ class PlanProvider extends ChangeNotifier {
   Future<void> _initialize() async {
     isLoading = true;
     notifyListeners();
+    try {
+      activeSession = await _isarService.findActivePlanSession();
 
-    activeSession = await _isarService.findActivePlanSession();
-
-    if (activeSession != null) {
-      await _loadDataForActiveSession();
+      if (activeSession != null) {
+        await _loadDataForActiveSession();
+      }
+    } finally {
+      isLoading = false;
+      notifyListeners();
     }
-
-    isLoading = false;
-    notifyListeners();
   }
 
   Future<void> endPlanSession() async {
     if (activeSession == null) return;
     isLoading = true;
     notifyListeners();
+    try {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      activeSession!.endDate = today
+          .subtract(Duration(days: today.weekday - 1))
+          .add(Duration(days: 6));
 
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    activeSession!.endDate = today
-        .subtract(Duration(days: today.weekday - 1))
-        .add(Duration(days: 6));
+      await _isarService.savePlanSession(activeSession!);
+      _activePlan!.isActive = false;
+      await _isarService.savePlan(_activePlan!);
 
-    await _isarService.savePlanSession(activeSession!);
-    _activePlan!.isActive = false;
-    await _isarService.savePlan(_activePlan!);
-
-    activeSession = null;
-    _activePlan = null;
-    currentWeekSelection = null;
-    daysForWeek = {};
-    isLoading = false;
-    notifyListeners();
+      activeSession = null;
+      _activePlan = null;
+      currentWeekSelection = null;
+      daysForWeek = {};
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> startPlanSession(
@@ -69,55 +72,59 @@ class PlanProvider extends ChangeNotifier {
   ) async {
     isLoading = true;
     notifyListeners();
+    try {
+      plan.isActive = true;
+      await _isarService.savePlan(plan);
+      PlanSession newSession = PlanSession()
+        ..plan.value = plan
+        ..startDate = personalization.firstWeekStart
+        ..lastCompletedAbsoluteWeek = 0;
+      activeSession = await _isarService.savePlanSession(newSession);
 
-    plan.isActive = true;
-    await _isarService.savePlan(plan);
-    PlanSession newSession = PlanSession()
-      ..plan.value = plan
-      ..startDate = personalization.firstWeekStart
-      ..lastCompletedAbsoluteWeek = 0;
-    activeSession = await _isarService.savePlanSession(newSession);
-
-    if (personalization.dayOrder != null) {
-      await _isarService.personalisePlan(plan, personalization.dayOrder!);
-    }
-
-    final firstWorkoutDay = personalization.selectedStartDate.weekday;
-    await plan.days.load();
-    final allPlanDays = plan.days.toList();
-    final firstWeekDays = allPlanDays
-        .where((day) => day.weekNumber == 1)
-        .toList();
-    for (final planDay in firstWeekDays) {
-      if (planDay.dayOrder < firstWorkoutDay) {
-        final DateTime missedDate = personalization.firstWeekStart.add(
-          Duration(days: planDay.dayOrder - 1),
-        );
-        final skippedWorkout = Workout()
-          ..date = missedDate
-          ..planSession.value = activeSession
-          ..status = WorkoutStatus.skipped
-          ..planDay.value = planDay;
-        await _isarService.saveWorkout(skippedWorkout);
+      if (personalization.dayOrder != null) {
+        await _isarService.personalisePlan(plan, personalization.dayOrder!);
       }
-    }
 
-    await _loadDataForActiveSession();
-    isLoading = false;
-    notifyListeners();
+      final firstWorkoutDay = personalization.selectedStartDate.weekday;
+      await plan.days.load();
+      final allPlanDays = plan.days.toList();
+      final firstWeekDays = allPlanDays
+          .where((day) => day.weekNumber == 1)
+          .toList();
+      for (final planDay in firstWeekDays) {
+        if (planDay.dayOrder < firstWorkoutDay) {
+          final DateTime missedDate = personalization.firstWeekStart.add(
+            Duration(days: planDay.dayOrder - 1),
+          );
+          final skippedWorkout = Workout()
+            ..date = missedDate
+            ..planSession.value = activeSession
+            ..status = WorkoutStatus.skipped
+            ..planDay.value = planDay;
+          await _isarService.saveWorkout(skippedWorkout);
+        }
+      }
+
+      await _loadDataForActiveSession();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   Future<void> renewPlanSession(Plan plan, PlanSession planSession) async {
     isLoading = true;
     notifyListeners();
-
-    plan.isActive = true;
-    await _isarService.savePlan(plan);
-    planSession.endDate = null;
-    activeSession = await _isarService.savePlanSession(planSession);
-    await _loadDataForActiveSession();
-    isLoading = false;
-    notifyListeners();
+    try {
+      plan.isActive = true;
+      await _isarService.savePlan(plan);
+      planSession.endDate = null;
+      activeSession = await _isarService.savePlanSession(planSession);
+      await _loadDataForActiveSession();
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
   void checkAndUpdateWeekCompletion() {

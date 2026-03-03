@@ -1,75 +1,32 @@
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/plan.dart';
-import 'package:fitness_app/providers/isar_service.dart';
+import 'package:fitness_app/models/workout_set.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/lifting_statistics_provider.dart';
-//todo přepsat, isarservice se bude starat o poskytnutí initial dat ohledně plánů, statistics provider bude získávat valid exercises, přidat bottomSheet pro filtrování tréninků jako transakcí v bance, přidat statistiky podle modelů
+//todo přepsat, přidat bottomSheet pro filtrování tréninků jako transakcí v bance, přidat statistiky podle modelů
 
-// ---------------------------------------------------------------------------
-// SCREEN
-// ---------------------------------------------------------------------------
-
-class LiftingStatisticsScreen extends StatefulWidget {
+class LiftingStatisticsScreen extends StatelessWidget {
   const LiftingStatisticsScreen({super.key});
-
-  @override
-  State<LiftingStatisticsScreen> createState() =>
-      _LiftingStatisticsScreenState();
-}
-
-class _LiftingStatisticsScreenState extends State<LiftingStatisticsScreen> {
-  // ------- MOCK: replace these with provider.plans, provider.exercises etc. -------
-
-  List<Plan> _plans = [];
-  List<Exercise> _exercises = [];
-
-  // Selected plan/exercise state – drive from provider.selectedPlan etc.
-  late Plan _selectedPlan;
-  late Exercise _selectedExercise;
-
-  // Mock aggregate stats – swap with provider.totalTonnage etc.
-  final String _totalTonnage = '45,200 kg';
-  final String _totalReps = '1,240';
-  final String _workoutsCompleted = '24';
-  final String _avgWorkoutTime = '65 min';
-
-  // Mock exercise stats – swap with provider.*
-  final String _bestSetDisplay = '130 kg × 6';
-  final String _bestSetDate = 'Achieved on 14 Jun 2025';
-  final bool _hasReal1RM = true; // toggle to see both UI states
-  final String _oneRMDisplay = '142 kg';
-  final String _oneRMDate = 'Logged on 2 May 2025';
-  final String _progressGain = '+15 kg on 1RM';
-
-  @override
-  void initState() {
-    super.initState();
-    final isarService = context.read<IsarService>();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _plans = await isarService.findAllValidPlans();
-      _selectedPlan = _plans.first;
-      _exercises = await isarService.findExercisesForPlan(_selectedPlan);
-      _selectedExercise = _exercises.first;
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // BUILD
-  // ---------------------------------------------------------------------------
-
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<LiftingStatisticsProvider>();
+    final plans = provider.validPlans;
+    final exercises = provider.groupedExercises;
+    final selectedPlan = provider.selectedPlan;
+    final selectedExercise = provider.selectedExercise;
+    final planSummary = provider.planSummary;
+    final exerciseSummary = provider.exerciseSummary;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Lifting Statistics'),
         centerTitle: false,
       ),
-      body: provider.isLoading
-          ? const Center(child: CircularProgressIndicator())
+      body: (provider.exerciseLoading || provider.planLoading)
+          ? Center(child: CircularProgressIndicator())
           : SafeArea(
               child: ListView(
                 padding: const EdgeInsets.symmetric(
@@ -78,36 +35,69 @@ class _LiftingStatisticsScreenState extends State<LiftingStatisticsScreen> {
                 ),
                 children: [
                   _PlanSelector(
-                    plans: _plans,
-                    selected: _selectedPlan,
-                    onChanged: (p) => setState(() => _selectedPlan = p),
+                    plans: plans,
+                    selected: selectedPlan,
+                    onChanged: (p) {
+                      provider.setSelectedPlan(p);
+                    },
                   ),
                   const SizedBox(height: 16),
-                  _EgoDashboard(
-                    totalTonnage: _totalTonnage,
-                    totalReps: _totalReps,
-                    workoutsCompleted: _workoutsCompleted,
-                    avgWorkoutTime: _avgWorkoutTime,
-                  ),
+                  if (provider.planLoading)
+                    Center(child: CircularProgressIndicator())
+                  else
+                    planSummary == null
+                        ? Center(child: CircularProgressIndicator())
+                        : _EgoDashboard(
+                            wightVolume: planSummary.weightVolume.toString(),
+                            totalReps: planSummary.totalReps.toString(),
+                            workoutsCompleted: planSummary.workoutsCompleted
+                                .toString(),
+                            avgWorkoutTime: planSummary.avgWorkoutTime
+                                .toString(),
+                            workoutConsistency: planSummary.workoutConsistency
+                                .toString(),
+                            workoutsSkipped: planSummary.workoutsSkipped
+                                .toString(),
+                          ),
                   const SizedBox(height: 20),
                   const _SectionDivider(label: 'Exercise Progress'),
                   const SizedBox(height: 16),
                   _ExerciseSelector(
-                    exercises: _exercises,
-                    selected: _selectedExercise,
-                    onChanged: (e) => setState(() => _selectedExercise = e),
+                    groupedExercises: exercises,
+                    selected: selectedExercise,
+                    onChanged: (e) {
+                      provider.setSelectedExercise(e);
+                    },
                   ),
-                  const SizedBox(height: 12),
-                  _BestSetCard(display: _bestSetDisplay, date: _bestSetDate),
-                  const SizedBox(height: 10),
-                  _OneRMCard(
-                    hasReal1RM: _hasReal1RM,
-                    display: _oneRMDisplay,
-                    date: _oneRMDate,
-                  ),
-                  const SizedBox(height: 10),
-                  _ProgressCard(gain: _progressGain),
-                  const SizedBox(height: 24),
+                  if (provider.exerciseLoading)
+                    Center(child: CircularProgressIndicator())
+                  else
+                    exerciseSummary == null
+                        ? _NoDataCard(
+                            message: "Complete this exercise to show data",
+                          )
+                        : Column(
+                            children: [
+                              const SizedBox(height: 12),
+                              _BestSetCard(set: exerciseSummary.bestSet),
+                              const SizedBox(height: 10),
+                              _OneRMCard(
+                                isEstimated: exerciseSummary.isEstimated,
+                                weight: exerciseSummary.oneRepMax,
+                                maxSet: exerciseSummary.maxSet,
+                              ),
+                              const SizedBox(height: 10),
+                              exerciseSummary.progress != null
+                                  ? _ProgressCard(
+                                      gain: exerciseSummary.progress!,
+                                    )
+                                  : _NoDataCard(
+                                      message:
+                                          "Not enough data for progression statistics",
+                                    ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                 ],
               ),
             ),
@@ -115,13 +105,10 @@ class _LiftingStatisticsScreenState extends State<LiftingStatisticsScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// PLAN SELECTOR
-// ---------------------------------------------------------------------------
-
 class _PlanSelector extends StatelessWidget {
+  //todo refactor
   final List<Plan> plans;
-  final Plan selected;
+  final Plan? selected;
   final ValueChanged<Plan> onChanged;
 
   const _PlanSelector({
@@ -152,21 +139,21 @@ class _PlanSelector extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// EGO DASHBOARD  –  2 × 2 stat grid
-// ---------------------------------------------------------------------------
-
 class _EgoDashboard extends StatelessWidget {
-  final String totalTonnage;
+  final String wightVolume;
   final String totalReps;
   final String workoutsCompleted;
+  final String workoutsSkipped;
+  final String workoutConsistency;
   final String avgWorkoutTime;
 
   const _EgoDashboard({
-    required this.totalTonnage,
+    required this.wightVolume,
     required this.totalReps,
     required this.workoutsCompleted,
     required this.avgWorkoutTime,
+    required this.workoutsSkipped,
+    required this.workoutConsistency,
   });
 
   @override
@@ -175,7 +162,7 @@ class _EgoDashboard extends StatelessWidget {
       _StatItem(
         icon: Icons.monitor_weight_rounded,
         label: 'Total Tonnage',
-        value: totalTonnage,
+        value: wightVolume,
         color: Colors.blueAccent,
       ),
       _StatItem(
@@ -195,6 +182,18 @@ class _EgoDashboard extends StatelessWidget {
         label: 'Avg. Duration',
         value: avgWorkoutTime,
         color: Colors.orangeAccent,
+      ),
+      _StatItem(
+        icon: Icons.skip_next_outlined,
+        label: 'workouts Skipped',
+        value: workoutsSkipped,
+        color: Colors.grey.shade600,
+      ),
+      _StatItem(
+        icon: Icons.local_fire_department_outlined,
+        label: 'Workout Consistency',
+        value: workoutConsistency,
+        color: Colors.deepOrangeAccent,
       ),
     ];
 
@@ -310,12 +309,12 @@ class _SectionDivider extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ExerciseSelector extends StatelessWidget {
-  final List<Exercise> exercises;
-  final Exercise selected;
+  final Map<String, List<Exercise>> groupedExercises;
+  final Exercise? selected;
   final ValueChanged<Exercise> onChanged;
 
   const _ExerciseSelector({
-    required this.exercises,
+    required this.groupedExercises,
     required this.selected,
     required this.onChanged,
   });
@@ -323,8 +322,56 @@ class _ExerciseSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DropdownButtonFormField<Exercise>(
-      initialValue: selected,
+    final int? selectedId = selected?.id;
+
+    final List<Exercise> allExercises = groupedExercises.values
+        .expand((exerciseList) => exerciseList)
+        .toList();
+
+    final bool idExist = allExercises.any((e) => e.id == selectedId);
+    final int? safeInitialValue = idExist ? selectedId : null;
+
+    final List<DropdownMenuItem<int>> dropdownItems = [];
+    int headerFakeId = -1;
+    groupedExercises.forEach((dayName, dailyExercises) {
+      dropdownItems.add(
+        DropdownMenuItem<int>(
+          value: headerFakeId--,
+          enabled: false,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (headerFakeId < -2) const Divider(height: 8),
+              Text(
+                dayName.toUpperCase(),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.primary,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      for (final exercise in dailyExercises) {
+        dropdownItems.add(
+          DropdownMenuItem<int>(
+            value: exercise.id,
+            child: Text(
+              exercise.name,
+              style: theme.textTheme.bodyMedium,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        );
+      }
+    });
+
+    return DropdownButtonFormField<int>(
+      initialValue: safeInitialValue,
+      isExpanded: true,
       decoration: InputDecoration(
         labelText: 'Exercise',
         prefixIcon: const Icon(Icons.sports_gymnastics_rounded),
@@ -332,11 +379,14 @@ class _ExerciseSelector extends StatelessWidget {
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerLow,
       ),
-      items: exercises
-          .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-          .toList(),
-      onChanged: (e) {
-        if (e != null) onChanged(e);
+      items: dropdownItems,
+      onChanged: (int? newId) {
+        if (newId != null) {
+          final Exercise selectedExercise = allExercises.firstWhere(
+            (e) => e.id == newId,
+          );
+          onChanged(selectedExercise);
+        }
       },
     );
   }
@@ -347,13 +397,15 @@ class _ExerciseSelector extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _BestSetCard extends StatelessWidget {
-  final String display;
-  final String date;
-  const _BestSetCard({required this.display, required this.date});
+  final WorkoutSet? set;
+  const _BestSetCard({required this.set});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    if (set == null) {
+      return _NoDataCard();
+    } //todo refactor
     return _DetailCard(
       child: Row(
         children: [
@@ -379,17 +431,18 @@ class _BestSetCard extends StatelessWidget {
                 ),
               ),
               Text(
-                display,
+                "${set!.weight.toStringAsFixed(1)} x ${set!.reps.toString()}",
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              Text(
-                date,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+              if (set!.workout.value != null)
+                Text(
+                  DateFormat("yMMMd").format(set!.workout.value!.date),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
             ],
           ),
         ],
@@ -398,19 +451,15 @@ class _BestSetCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// 1RM CARD  –  conditional: estimated vs true
-// ---------------------------------------------------------------------------
-
 class _OneRMCard extends StatelessWidget {
-  final bool hasReal1RM;
-  final String display;
-  final String date;
+  final bool isEstimated;
+  final double weight;
+  final WorkoutSet? maxSet;
 
   const _OneRMCard({
-    required this.hasReal1RM,
-    required this.display,
-    required this.date,
+    required this.isEstimated,
+    required this.weight,
+    required this.maxSet,
   });
 
   @override
@@ -422,7 +471,7 @@ class _OneRMCard extends StatelessWidget {
     const goldDark = Color(0xFF3E2E00);
     const goldBorder = Color(0xFFFFCA28);
 
-    final isGold = hasReal1RM;
+    final isGold = !isEstimated;
     final cardColor = isGold
         ? (theme.brightness == Brightness.dark ? goldDark : goldLight)
         : theme.colorScheme.surfaceContainerLow;
@@ -461,7 +510,7 @@ class _OneRMCard extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        isGold ? 'True 1RM' : 'Est. 1RM',
+                        isGold ? 'True 1RM' : 'Estimated 1RM',
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: isGold
                               ? const Color(0xFFB8860B)
@@ -481,7 +530,7 @@ class _OneRMCard extends StatelessWidget {
                           ),
                           child: Text(
                             'VERIFIED',
-                            style: theme.textTheme.labelSmall?.copyWith(
+                            style: theme.textTheme.labelMedium?.copyWith(
                               color: const Color(0xFFB8860B),
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.8,
@@ -492,20 +541,23 @@ class _OneRMCard extends StatelessWidget {
                     ],
                   ),
                   Text(
-                    display,
-                    style: theme.textTheme.headlineSmall?.copyWith(
+                    isEstimated
+                        ? weight.toStringAsFixed(2)
+                        : maxSet!.weight.toString(),
+                    style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: isGold ? const Color(0xFF7A5800) : null,
                     ),
                   ),
-                  Text(
-                    date,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: isGold
-                          ? const Color(0xFFB8860B)
-                          : theme.colorScheme.onSurfaceVariant,
+                  if (maxSet != null && maxSet!.workout.value != null)
+                    Text(
+                      DateFormat("yMMMd").format(maxSet!.workout.value!.date),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: isGold
+                            ? const Color(0xFFB8860B)
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -521,13 +573,13 @@ class _OneRMCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 class _ProgressCard extends StatelessWidget {
-  final String gain;
+  final double gain;
   const _ProgressCard({required this.gain});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isPositive = gain.startsWith('+');
+    final isPositive = gain.isNegative;
     final color = isPositive ? Colors.green : theme.colorScheme.error;
 
     return _DetailCard(
@@ -557,7 +609,7 @@ class _ProgressCard extends StatelessWidget {
                 ),
               ),
               Text(
-                gain,
+                gain.toStringAsFixed(2),
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: color,
@@ -577,10 +629,6 @@ class _ProgressCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// SHARED DETAIL CARD WRAPPER
-// ---------------------------------------------------------------------------
-
 class _DetailCard extends StatelessWidget {
   final Widget child;
   const _DetailCard({required this.child});
@@ -598,6 +646,57 @@ class _DetailCard extends StatelessWidget {
         ),
       ),
       child: Padding(padding: const EdgeInsets.all(16), child: child),
+    );
+  }
+}
+
+class _NoDataCard extends StatelessWidget {
+  final String? message;
+  const _NoDataCard({this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      elevation: 0,
+      color: theme.colorScheme.surfaceContainerLow,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.bar_chart_rounded,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No Data Available',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message ?? 'Complete a workout to see your statistics here.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.7,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

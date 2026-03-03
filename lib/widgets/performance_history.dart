@@ -282,6 +282,7 @@ class PerformanceHistory extends StatelessWidget {
     );
   }
 
+  //todo implement clamping via rep-range
   WorkoutSet? _findBestSet() {
     final completedSets = loggedSets.where((s) => !s.isSkipped).toList();
     if (completedSets.isEmpty) return null;

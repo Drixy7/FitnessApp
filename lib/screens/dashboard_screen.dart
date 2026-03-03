@@ -8,7 +8,7 @@ import 'package:fitness_app/widgets/training_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-//TODO Design this to be prettier + IMPLEMENT VISUAL EFFECTS OF WORKOUT STATUS. + Implement visual difference of completed week
+//todo implement warning dialog while on clicking skip!
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 

@@ -266,51 +266,54 @@ class WorkoutProvider extends ChangeNotifier {
       return;
     }
     _isFinishing = true;
-    final currentWorkout = activeWorkout!;
-    bool hasAnyActivity = false;
-    bool isFullyCompleted = true;
-    bool isFullySkipped = true;
+    try {
+      final currentWorkout = activeWorkout!;
+      bool hasAnyActivity = false;
+      bool isFullyCompleted = true;
+      bool isFullySkipped = true;
 
-    for (final exercise in workoutExercises) {
-      final sets = loggedSets[exercise.orderIndex];
-      if (sets == null || sets.isEmpty) {
-        isFullyCompleted = false;
-      } else {
-        hasAnyActivity = true;
-        if (sets.any((workoutSet) => !workoutSet.isSkipped)) {
-          isFullySkipped = false;
+      for (final exercise in workoutExercises) {
+        final sets = loggedSets[exercise.orderIndex];
+        if (sets == null || sets.isEmpty) {
+          isFullyCompleted = false;
+        } else {
+          hasAnyActivity = true;
+          if (sets.any((workoutSet) => !workoutSet.isSkipped)) {
+            isFullySkipped = false;
+          }
         }
       }
+      WorkoutStatus newStatus;
+
+      if (!hasAnyActivity) {
+        // Case A: Planned (User just peeked, didn't log any exercise accordion)
+        activeWorkout!.status == WorkoutStatus.skipped
+            ? newStatus = WorkoutStatus.skipped
+            : newStatus = WorkoutStatus.planned;
+      } else if (isFullyCompleted && !isFullySkipped) {
+        // Case B: Completed (All exercises have valid data)
+        newStatus = WorkoutStatus.completed;
+      } else if (isFullySkipped) {
+        // Case C: Skipped (All exercises are skipped)
+        newStatus = WorkoutStatus.skipped;
+      } else {
+        // Case D: In Progress (Some exercises touched, or touched but left empty)
+        newStatus = WorkoutStatus.inProgress;
+      }
+
+      currentWorkout.status = newStatus;
+      currentWorkout.durationInSeconds = stopwatchInSeconds;
+      await _isarService.saveWorkout(currentWorkout);
+
+      _planProvider.updateDayMapping(
+        activeWorkout!.planDay.value!,
+        activeWorkout!,
+      );
+      _planProvider.checkAndUpdateWeekCompletion();
+    } finally {
+      _isFinishing = false;
+      clearActiveWorkout();
     }
-    WorkoutStatus newStatus;
-
-    if (!hasAnyActivity) {
-      // Case A: Planned (User just peeked, didn't log any exercise accordion)
-      activeWorkout!.status == WorkoutStatus.skipped
-          ? newStatus = WorkoutStatus.skipped
-          : newStatus = WorkoutStatus.planned;
-    } else if (isFullyCompleted && !isFullySkipped) {
-      // Case B: Completed (All exercises have valid data)
-      newStatus = WorkoutStatus.completed;
-    } else if (isFullySkipped) {
-      // Case C: Skipped (All exercises are skipped)
-      newStatus = WorkoutStatus.skipped;
-    } else {
-      // Case D: In Progress (Some exercises touched, or touched but left empty)
-      newStatus = WorkoutStatus.inProgress;
-    }
-
-    currentWorkout.status = newStatus;
-    currentWorkout.durationInSeconds = stopwatchInSeconds;
-    await _isarService.saveWorkout(currentWorkout);
-
-    _planProvider.updateDayMapping(
-      activeWorkout!.planDay.value!,
-      activeWorkout!,
-    );
-    _planProvider.checkAndUpdateWeekCompletion();
-
-    clearActiveWorkout();
   }
 
   void clearActiveWorkout() {
@@ -412,9 +415,6 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Map<int, List<WorkoutSet>> _populateLoggedSets(List<WorkoutSet> workoutSets) {
-    if (!isWorkoutActive) {
-      throw Exception("Do not invoke while there is no workout active");
-    }
     Map<int, List<WorkoutSet>> result = {};
 
     for (WorkoutSet w in workoutSets) {

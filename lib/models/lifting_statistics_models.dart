@@ -1,12 +1,12 @@
 import 'package:fitness_app/models/workout_set.dart';
 
 class PlanSummary {
-  final double weightVolume;
+  final double weightVolume; // in tons
   final int totalReps;
   final int workoutsCompleted;
   final int workoutsSkipped;
   final int workoutConsistency;
-  final int averageWorkoutDuration;
+  final int avgWorkoutTime;
 
   PlanSummary({
     required this.weightVolume,
@@ -14,7 +14,7 @@ class PlanSummary {
     required this.workoutsCompleted,
     required this.workoutsSkipped,
     required this.workoutConsistency,
-    required this.averageWorkoutDuration,
+    required this.avgWorkoutTime,
   });
 }
 
@@ -22,7 +22,7 @@ class ExerciseSummary {
   final WorkoutSet bestSet;
   final double oneRepMax;
   final WorkoutSet? maxSet;
-  final double progress;
+  final double? progress;
   final int skippedCount;
   bool get isEstimated => maxSet == null;
 

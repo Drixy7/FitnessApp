@@ -223,14 +223,16 @@ class IsarService {
     yield* isar.plans.watchLazy();
   }
 
-  Future<List<Exercise>> findExercisesForPlan(Plan plan) async {
+  Future<Map<String, List<Exercise>>> findExercisesForPlan(Plan plan) async {
     await plan.days.load();
     final allDays = plan.days.toList();
     final filteredDays = allDays.where((day) => day.weekNumber == 1);
-    final List<Exercise> uniqueExercises = [];
+    List<Exercise> uniqueExercises;
+    final Map<String, List<Exercise>> resultMap = {};
     final Set<int> idsOfAddedExercises = {};
 
     for (final day in filteredDays) {
+      uniqueExercises = [];
       await day.exercises.load();
       final allExercises = day.exercises.toList();
       for (final exercise in allExercises) {
@@ -243,8 +245,9 @@ class IsarService {
           uniqueExercises.add(realExercise);
         }
       }
+      resultMap.addAll({day.name: uniqueExercises});
     }
-    return uniqueExercises;
+    return resultMap;
   }
 
   Future<void> savePlan(Plan plan) async {
@@ -339,6 +342,7 @@ class IsarService {
   Future<void> skipWorkout(Workout workout) async {
     final isar = await db;
     workout.status = WorkoutStatus.skipped;
+    workout.durationInSeconds = 0;
     final setsToDelete = workout.sets.map((s) => s.id).toList();
     await isar.writeTxn(() async {
       await isar.workoutSets.deleteAll(setsToDelete);
@@ -391,6 +395,14 @@ class IsarService {
         .findFirst();
   }
 
+  Future<List<Workout>> findAllWorkoutsForPlan(Plan plan) async {
+    final isar = await db;
+    return isar.workouts
+        .filter()
+        .planSession((q) => q.plan((q) => q.idEqualTo(plan.id)))
+        .findAll();
+  }
+
   Future<Workout?> findWorkoutForDate(DateTime date) async {
     final isar = await db;
     return isar.workouts.filter().dateEqualTo(date).findFirst();
@@ -409,6 +421,41 @@ class IsarService {
         .exercise((q) => q.idEqualTo(exerciseId))
         .sortBySetNumber()
         .findAll();
+  }
+
+  Future<List<WorkoutSet>> findValidWorkoutSetsForPlan(Plan plan) async {
+    final isar = await db;
+    return isar.workoutSets
+        .filter()
+        .workout(
+          (q) => q.planSession((q) => q.plan((q) => q.idEqualTo(plan.id))),
+        )
+        .and()
+        .isSkippedEqualTo(false)
+        .findAll();
+  }
+
+  Future<List<WorkoutSet>> findAllWorkoutSetsForExercise(
+    Exercise exercise,
+  ) async {
+    final isar = await db;
+    final sets = await isar.workoutSets
+        .filter()
+        .exercise((q) => q.exercise((q) => q.idEqualTo(exercise.id)))
+        .findAll();
+
+    for (final workoutSet in sets) {
+      await workoutSet.workout.load();
+    }
+    sets.sort((a, b) {
+      final dateA =
+          a.workout.value?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateB =
+          b.workout.value?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return dateB.compareTo(dateA);
+    });
+
+    return sets;
   }
 
   Future<void> saveWorkoutSet(WorkoutSet workoutSet) async {

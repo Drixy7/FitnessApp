@@ -1,4 +1,3 @@
-//todo It should implements a way to show bodyWeight data by default there should be visible a week determined by Datetime.now() -> when showing data it should always show them segmented by weeks and at the end of each segment there should be Weekly average of weight, also there should be a place where should be the lowest value in selected range, highest value in selected range, average weekly gain/loose -> counted from weekly averages for example 1: 85.5 2: 86 3: 85 4: 87 -> 0.375 average gain, there should also be a switch button to determine if the statistics should show only show Week averages or raw data for each day (without averages)
 import 'package:fitness_app/models/body_weight_statistics_models.dart';
 import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/models/weight_log.dart';
