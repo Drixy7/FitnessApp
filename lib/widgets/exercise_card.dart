@@ -2,8 +2,10 @@ import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/models/workout_set.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/utils/datatypes.dart';
+import 'package:fitness_app/widgets/warning_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../screens/exercise_detail_screen.dart';
 
@@ -91,9 +93,41 @@ class ExerciseCard extends StatelessWidget {
                   // --- ACTION MENU (Info, Skip) ---
                   PopupMenuButton<String>(
                     icon: Icon(Icons.more_vert, color: textColor),
-                    onSelected: (value) {
-                      if (value == 'info') _launchInfoUrl();
-                      if (value == 'skip') _toggleSkip(context, isSkipped);
+                    onSelected: (value) async {
+                      switch (value) {
+                        case 'info':
+                          final bool result = await showWarningDialog(
+                            "Redirection Warning",
+                            "You will be redirected to external site (www.musclewiki.com), you must have a browser installed on your device. Do you want to proceed?",
+                            context,
+                          );
+                          if (result && context.mounted) {
+                            _launchInfoUrl(
+                              context,
+                              planDayExercise
+                                  .exercise
+                                  .value
+                                  ?.moreInformationURL,
+                            );
+                          }
+                          break;
+
+                        case 'skip':
+                          if (isSkipped) {
+                            _toggleSkip(context, isSkipped);
+                          } else {
+                            final bool result = await showWarningDialog(
+                              "Skipping Exercise",
+                              "Are you sure you want to skip this exercise? All already filled sets will be lost. This action is irreversible.",
+                              context,
+                            );
+
+                            if (result && context.mounted) {
+                              _toggleSkip(context, isSkipped);
+                            }
+                          }
+                          break;
+                      }
                     },
                     itemBuilder: (BuildContext context) =>
                         <PopupMenuEntry<String>>[
@@ -224,11 +258,57 @@ class ExerciseCard extends StatelessWidget {
     }
   }
 
-  void _launchInfoUrl() async {
-    // Check if url exists in planDayExercise.exercise.value?.url
-    // const url = 'https://youtube.com/...';
-    // if (await canLaunchUrl(Uri.parse(url))) {
-    //   await launchUrl(Uri.parse(url));
-    // }
+  void _launchInfoUrl(BuildContext context, String? urlString) async {
+    final theme = Theme.of(context);
+    if (urlString == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'There was a mistake loading more info url',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onError,
+            ),
+          ),
+          backgroundColor: theme.colorScheme.error,
+        ),
+      );
+      return;
+    }
+
+    final Uri url = Uri.parse(urlString);
+
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'There was an error opening browser, check if you have one installed',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onError,
+                ),
+              ),
+              backgroundColor: theme.colorScheme.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'FATAL ERROR',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onError,
+              ),
+            ),
+            backgroundColor: theme.colorScheme.error,
+          ),
+        );
+      }
+    }
   }
 }

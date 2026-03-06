@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:fitness_app/utils/formatters.dart';
 import 'package:flutter/material.dart';
 
 class WorkoutTimer extends StatefulWidget {
@@ -119,7 +120,7 @@ class _WorkoutTimerState extends State<WorkoutTimer>
             duration: const Duration(milliseconds: 200),
             opacity: _isRunning ? 1.0 : 0.2,
             child: Text(
-              _formatTime(_currentSeconds),
+              formatTime(_currentSeconds),
               style: theme.textTheme.bodyMedium?.copyWith(
                 fontFeatures: [const FontFeature.tabularFigures()],
                 color: theme.colorScheme.primary,

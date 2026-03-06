@@ -1,6 +1,7 @@
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/plan.dart';
 import 'package:fitness_app/models/workout_set.dart';
+import 'package:fitness_app/utils/formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,7 @@ class LiftingStatisticsScreen extends StatelessWidget {
         title: const Text('Lifting Statistics'),
         centerTitle: false,
       ),
-      body: (provider.exerciseLoading || provider.planLoading)
+      body: (provider.exerciseLoading && provider.planLoading)
           ? Center(child: CircularProgressIndicator())
           : SafeArea(
               child: ListView(
@@ -43,17 +44,22 @@ class LiftingStatisticsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   if (provider.planLoading)
-                    Center(child: CircularProgressIndicator())
+                    Padding(
+                      padding: const EdgeInsets.all(25.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
                   else
                     planSummary == null
                         ? Center(child: CircularProgressIndicator())
                         : _EgoDashboard(
-                            wightVolume: planSummary.weightVolume.toString(),
+                            weightVolume: (planSummary.weightVolume / 1000)
+                                .toStringAsFixed(1),
                             totalReps: planSummary.totalReps.toString(),
                             workoutsCompleted: planSummary.workoutsCompleted
                                 .toString(),
-                            avgWorkoutTime: planSummary.avgWorkoutTime
-                                .toString(),
+                            avgWorkoutTime: formatTime(
+                              planSummary.avgWorkoutTime,
+                            ),
                             workoutConsistency: planSummary.workoutConsistency
                                 .toString(),
                             workoutsSkipped: planSummary.workoutsSkipped
@@ -70,7 +76,10 @@ class LiftingStatisticsScreen extends StatelessWidget {
                     },
                   ),
                   if (provider.exerciseLoading)
-                    Center(child: CircularProgressIndicator())
+                    Padding(
+                      padding: const EdgeInsets.all(25),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
                   else
                     exerciseSummary == null
                         ? _NoDataCard(
@@ -108,7 +117,6 @@ class LiftingStatisticsScreen extends StatelessWidget {
 }
 
 class _PlanSelector extends StatelessWidget {
-  //todo refactor
   final List<Plan> plans;
   final Plan? selected;
   final ValueChanged<Plan> onChanged;
@@ -122,8 +130,27 @@ class _PlanSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return DropdownButtonFormField<Plan>(
-      initialValue: selected,
+
+    final int? selectedId = selected?.id;
+    final bool idExist = plans.any((p) => p.id == selectedId);
+    final List<DropdownMenuItem<int>> dropdownItems = [];
+    for (final plan in plans) {
+      dropdownItems.add(
+        DropdownMenuItem(
+          value: plan.id,
+          child: Text(
+            plan.name,
+            style: theme.textTheme.bodyMedium,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      );
+    }
+
+    final int? safeValue = idExist ? selectedId : null;
+
+    return DropdownButtonFormField<int>(
+      initialValue: safeValue,
       decoration: InputDecoration(
         labelText: 'Workout Plan',
         prefixIcon: const Icon(Icons.fitness_center_rounded),
@@ -131,18 +158,19 @@ class _PlanSelector extends StatelessWidget {
         filled: true,
         fillColor: theme.colorScheme.surfaceContainerLow,
       ),
-      items: plans
-          .map((p) => DropdownMenuItem(value: p, child: Text(p.name)))
-          .toList(),
-      onChanged: (p) {
-        if (p != null) onChanged(p);
+      items: dropdownItems,
+      onChanged: (int? planId) {
+        if (planId != null) {
+          final Plan selectedPlan = plans.firstWhere((p) => p.id == planId);
+          onChanged(selectedPlan);
+        }
       },
     );
   }
 }
 
 class _EgoDashboard extends StatelessWidget {
-  final String wightVolume;
+  final String weightVolume;
   final String totalReps;
   final String workoutsCompleted;
   final String workoutsSkipped;
@@ -150,7 +178,7 @@ class _EgoDashboard extends StatelessWidget {
   final String avgWorkoutTime;
 
   const _EgoDashboard({
-    required this.wightVolume,
+    required this.weightVolume,
     required this.totalReps,
     required this.workoutsCompleted,
     required this.avgWorkoutTime,
@@ -164,7 +192,7 @@ class _EgoDashboard extends StatelessWidget {
       _StatItem(
         icon: Icons.monitor_weight_rounded,
         label: 'Total Tonnage',
-        value: wightVolume,
+        value: weightVolume,
         color: Colors.blueAccent,
       ),
       _StatItem(
@@ -175,13 +203,13 @@ class _EgoDashboard extends StatelessWidget {
       ),
       _StatItem(
         icon: Icons.check_circle_outline_rounded,
-        label: 'Workouts',
+        label: 'Workouts completed',
         value: workoutsCompleted,
         color: Colors.greenAccent,
       ),
       _StatItem(
         icon: Icons.timer_outlined,
-        label: 'Avg. Duration',
+        label: 'Avg. workout Duration',
         value: avgWorkoutTime,
         color: Colors.orangeAccent,
       ),
@@ -194,7 +222,7 @@ class _EgoDashboard extends StatelessWidget {
       _StatItem(
         icon: Icons.local_fire_department_outlined,
         label: 'Workout Consistency',
-        value: workoutConsistency,
+        value: "$workoutConsistency %",
         color: Colors.deepOrangeAccent,
       ),
     ];
@@ -301,10 +329,6 @@ class _SectionDivider extends StatelessWidget {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// EXERCISE SELECTOR
-// ---------------------------------------------------------------------------
 
 class _ExerciseSelector extends StatelessWidget {
   final Map<String, List<Exercise>> groupedExercises;
@@ -746,7 +770,7 @@ class _ExerciseSkipCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Times Skipped',
+                'Sets Skipped',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

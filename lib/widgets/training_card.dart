@@ -1,10 +1,9 @@
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/models/workout.dart'; // Ensure enum WorkoutStatus is here
 import 'package:fitness_app/utils/datatypes.dart';
+import 'package:fitness_app/widgets/warning_dialog.dart';
 import 'package:flutter/material.dart';
 
-//todo implement url_launcher
-//todo implement warning message before skipping
 class TrainingCard extends StatelessWidget {
   final PlanDay day;
   final Workout? workout; // Nullable: If null, state is "Planned"
@@ -215,18 +214,20 @@ class TrainingCard extends StatelessWidget {
     // STATE: PLANNED (Default)
     return Row(
       children: [
-        // Info Button
-        IconButton(
-          onPressed: onShowInfo,
-          icon: Icon(Icons.info_outline, color: colors.primary),
-          tooltip: "Plan Info",
-        ),
-
         const Spacer(),
 
         // Skip Button
         TextButton(
-          onPressed: onSkip,
+          onPressed: () async {
+            final bool result = await showWarningDialog(
+              "Skipping Workout",
+              "Are you sure you want to skip this workout, all entered data will be lost. This process is irreversible",
+              context,
+            );
+            if (result) {
+              onSkip();
+            }
+          },
           style: TextButton.styleFrom(foregroundColor: colors.error),
           child: const Text("Skip"),
         ),

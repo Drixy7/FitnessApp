@@ -252,7 +252,7 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Future<void> updateWorkoutDuration(int newDuration) async {
-    if (!isWorkoutActive) return; //user already saved time
+    if (!isWorkoutActive) return;
     activeWorkout!.durationInSeconds = newDuration;
     await _isarService.saveWorkout(activeWorkout!);
   }

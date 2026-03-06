@@ -1,17 +1,12 @@
-/*shows current week at top, shows current training_day name, shows exercises in current training,
-enables making an entry to a working_set database, */
-
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/widgets/exercise_card.dart';
 import 'package:fitness_app/widgets/workout_timer.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-//import 'package:url_launcher/url_launcher.dart';
 
 class DayDetailScreen extends StatelessWidget {
   const DayDetailScreen({super.key});
 
-  // UX Feature: Simple Dialog to add a global workout note
   void _showNoteDialog(BuildContext context) {
     final workoutProvider = context.read<WorkoutProvider>();
     final controller = TextEditingController();

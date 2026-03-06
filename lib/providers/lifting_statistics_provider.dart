@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/lifting_statistics_models.dart';
+import 'package:fitness_app/models/workout.dart';
 import 'package:fitness_app/providers/isar_service.dart';
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/cupertino.dart';
@@ -60,12 +61,13 @@ class LiftingStatisticsProvider extends ChangeNotifier {
   }
 
   Future<void> loadDataForExercise() async {
-    if (selectedExercise == null) return;
+    if (selectedExercise == null || selectedPlan == null) return;
     exerciseLoading = true;
     notifyListeners();
     try {
       final allSets = await _isarService.findAllWorkoutSetsForExercise(
         selectedExercise!,
+        selectedPlan!,
       );
       if (allSets.isEmpty) {
         exerciseSummary = null;
@@ -80,11 +82,16 @@ class LiftingStatisticsProvider extends ChangeNotifier {
       final Map<String, int> exerciseOccurrences = {};
 
       final RepRange setRepRange = firstSet.exercise.value!.targetReps;
+      final futures = <Future>[];
 
       for (final set in allSets) {
-        await set.workout.load();
-        await set.exercise.load();
+        if (!set.exercise.isLoaded) {
+          futures.add(set.exercise.load());
+        }
+        await Future.wait(futures);
+      }
 
+      for (final set in allSets) {
         final wId = set.workout.value!.id;
         final eId = set.exercise.value!.id;
 
@@ -96,14 +103,19 @@ class LiftingStatisticsProvider extends ChangeNotifier {
       switch (setRepRange) {
         case RepRange.lowRep:
           repClamp = 6;
+          break;
         case RepRange.strength:
           repClamp = 10;
+          break;
         case RepRange.hypertrophy:
           repClamp = 13;
+          break;
         case RepRange.extendedHypertrophy:
           repClamp = 16;
+          break;
         case RepRange.highRep:
           repClamp = 20;
+          break;
       }
 
       for (final set in allSets) {
@@ -148,12 +160,12 @@ class LiftingStatisticsProvider extends ChangeNotifier {
     planLoading = true;
     notifyListeners();
     try {
-      final allSets = await _isarService.findValidWorkoutSetsForPlan(
-        selectedPlan!,
-      );
-      final allWorkouts = await _isarService.findAllWorkoutsForPlan(
-        selectedPlan!,
-      );
+      final results = await Future.wait([
+        _isarService.findValidWorkoutSetsForPlan(selectedPlan!),
+        _isarService.findAllWorkoutsForPlan(selectedPlan!),
+      ]);
+      final allSets = results[0] as List<WorkoutSet>;
+      final allWorkouts = results[1] as List<Workout>;
       double totalVolume = 0;
       int totalReps = 0;
       int workoutsCompleted = 0;
@@ -173,15 +185,21 @@ class LiftingStatisticsProvider extends ChangeNotifier {
             workoutsCompleted++;
             sumOfWorkoutTime += w.durationInSeconds;
             numberOfCompletedWorkouts++;
+            break;
           case WorkoutStatus.skipped:
             workoutsSkipped++;
+            break;
           default:
             continue;
         }
       }
+      if (allWorkouts.isNotEmpty) {
+        workoutConsistency = ((workoutsCompleted / allWorkouts.length) * 100)
+            .toInt();
+      } else {
+        workoutConsistency = 0;
+      }
 
-      workoutConsistency = ((workoutsCompleted / allWorkouts.length) * 100)
-          .toInt();
       planSummary = PlanSummary(
         weightVolume: totalVolume,
         avgWorkoutTime: numberOfCompletedWorkouts == 0
@@ -200,11 +218,13 @@ class LiftingStatisticsProvider extends ChangeNotifier {
   }
 
   void setSelectedExercise(Exercise e) {
+    if (selectedExercise?.id == e.id) return;
     selectedExercise = e;
     loadDataForExercise();
   }
 
   void setSelectedPlan(Plan p) {
+    if (selectedPlan?.id == p.id) return;
     selectedPlan = p;
     loadDataForPlan();
   }
@@ -221,11 +241,9 @@ class LiftingStatisticsProvider extends ChangeNotifier {
   ) async {
     final Map<DateTime, double> dailyMax = {};
 
-    // 1. Seskupení na "Jeden nejlepší e1RM za den" (Odfiltrování lehčích sérií ze stejného dne)
     for (final set in sets) {
       if (set.isSkipped || set.reps > repClamp) continue;
 
-      await set.workout.load();
       final workout = set.workout.value;
       if (workout == null) continue;
 
@@ -270,6 +288,6 @@ class LiftingStatisticsProvider extends ChangeNotifier {
     final double slope = ((n * sumXY) - (sumX * sumY)) / denominator;
     final double totalDays = lastDate.difference(firstDate).inDays.toDouble();
 
-    return slope * totalDays; // Vrátí reálný celkový přírůstek/úbytek síly v kg
+    return slope * totalDays;
   }
 }

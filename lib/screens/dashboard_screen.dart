@@ -8,6 +8,8 @@ import 'package:fitness_app/widgets/training_card.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../providers/isar_service.dart';
+
 //todo implement warning dialog while on clicking skip!
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -87,6 +89,31 @@ class DashboardScreen extends StatelessWidget {
                           );
                         },
                       ),
+                    ),
+                    ElevatedButton(
+                      child: const Text('Vygenerovat testovací historii'),
+                      onPressed: () async {
+                        final isarService = context.read<IsarService>();
+                        final planProvider = context.read<PlanProvider>();
+
+                        if (planProvider.activePlan != null &&
+                            planProvider.activeSession != null) {
+                          await isarService.seedHistoricalData(
+                            activePlan: planProvider.activePlan!,
+                            activeSession: planProvider.activeSession!,
+                            weeksBack: 6,
+                            weekSelection: planProvider.currentWeekSelection!,
+                          );
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Historie vygenerována!'),
+                              ),
+                            );
+                          }
+                        }
+                      },
                     ),
                     SizedBox(height: 80),
                   ],

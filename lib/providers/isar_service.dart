@@ -1,5 +1,9 @@
+import 'dart:math';
+
 import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/utils/datatypes.dart';
+import 'package:fitness_app/utils/formatters.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -325,6 +329,7 @@ class IsarService {
         .weekNumberEqualTo(weekNumber)
         .and()
         .plan((q) => q.idEqualTo(plan.id))
+        .sortByDayOrder()
         .findAll();
   }
 
@@ -373,12 +378,9 @@ class IsarService {
     Plan plan,
   ) async {
     final isar = await db;
-    final end = endOfWeek
-        .add(Duration(days: 1))
-        .subtract(Duration(milliseconds: 1));
     return await isar.workouts
         .filter()
-        .dateBetween(startOfWeek, end)
+        .dateBetween(startOfWeek, endOfWeek)
         .and()
         .planDay((q) => q.plan((p) => p.idEqualTo(plan.id)))
         .findAll();
@@ -437,21 +439,28 @@ class IsarService {
 
   Future<List<WorkoutSet>> findAllWorkoutSetsForExercise(
     Exercise exercise,
+    Plan plan,
   ) async {
     final isar = await db;
     final sets = await isar.workoutSets
         .filter()
         .exercise((q) => q.exercise((q) => q.idEqualTo(exercise.id)))
+        .and()
+        .workout(
+          (q) => q.planSession((q) => q.plan((q) => q.idEqualTo(plan.id))),
+        )
         .findAll();
 
+    List<Future> futures = [];
     for (final workoutSet in sets) {
-      await workoutSet.workout.load();
+      if (!workoutSet.workout.isLoaded) {
+        futures.add(workoutSet.workout.load());
+      }
     }
+    await Future.wait(futures);
     sets.sort((a, b) {
-      final dateA =
-          a.workout.value?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final dateB =
-          b.workout.value?.date ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateA = a.workout.value!.date;
+      final dateB = b.workout.value!.date;
       return dateB.compareTo(dateA);
     });
 
@@ -621,6 +630,80 @@ class IsarService {
       await isar.weightLogs.putAll(logsToAdd);
     });
   }
-}
 
-//todo Implement ALL IN ONE TESTING METHODS for workouts
+  Future<void> seedHistoricalData({
+    required Plan activePlan,
+    required PlanSession activeSession,
+    required WeekSelectionResult weekSelection,
+    int weeksBack = 4,
+  }) async {
+    final random = Random();
+
+    final isar = await db;
+    int selectedWeek = weekSelection.selectedTotalWeek;
+    DateTime startDate = weekSelection.startOfWeek;
+    await isar.writeTxn(() async {
+      for (int i = 0; i <= weeksBack; i++) {
+        selectedWeek += i;
+        startDate = startDate.add(Duration(days: i * 7));
+        final planDays = await findDaysForWeek(
+          weekFromAbsoluteWeek(selectedWeek, 6),
+          activePlan,
+        );
+        for (final planDay in planDays) {
+          final exercises = await isar.planDayExercises
+              .filter()
+              .planDay((q) => q.idEqualTo(planDay.id))
+              .sortByOrderIndex()
+              .findAll();
+
+          final targetDate = startDate.add(
+            Duration(days: planDay.dayOrder - 1),
+          );
+
+          final workout = Workout()
+            ..date = DateTime(targetDate.year, targetDate.month, targetDate.day)
+            ..status = WorkoutStatus.completed
+            ..durationInSeconds = 3600 + random.nextInt(1800)
+            ..planDay.value = planDay
+            ..planSession.value = activeSession;
+
+          await isar.workouts.put(workout);
+          await workout.planDay.save();
+          await workout.planSession.save();
+
+          final setsToSave = <WorkoutSet>[];
+
+          for (final exercise in exercises) {
+            final baseWeight = 20.0 + (exercise.orderIndex * 10);
+            final progression = (weeksBack + i) * 2.5;
+
+            for (int i = 1; i <= exercise.targetSets; i++) {
+              final set = WorkoutSet()
+                ..setNumber = i
+                ..reps = (random.nextInt(10) + 6)
+                ..weight = baseWeight + progression
+                ..isSkipped = false
+                ..workout.value = workout
+                ..exercise.value = exercise;
+
+              setsToSave.add(set);
+            }
+          }
+
+          await isar.workoutSets.putAll(setsToSave);
+          for (final set in setsToSave) {
+            await set.workout.save();
+            await set.exercise.save();
+          }
+        }
+      }
+    });
+
+    debugPrint(
+      '✅ Testovací data (historie na $weeksBack týdnů) byla úspěšně zapsána do databáze!',
+    );
+  }
+
+  //todo Implement ALL IN ONE TESTING METHODS for workouts
+}

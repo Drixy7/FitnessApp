@@ -14,7 +14,7 @@ class PlanProvider extends ChangeNotifier {
   final IsarService _isarService;
 
   // -- STATE VARIABLES --
-  Plan? _activePlan;
+  Plan? activePlan; //todo make private!!
   PlanSession? activeSession;
   bool isLoading = true;
   Map<int, (PlanDay, Workout?)> daysForWeek =
@@ -53,11 +53,11 @@ class PlanProvider extends ChangeNotifier {
           .add(Duration(days: 6));
 
       await _isarService.savePlanSession(activeSession!);
-      _activePlan!.isActive = false;
-      await _isarService.savePlan(_activePlan!);
+      activePlan!.isActive = false;
+      await _isarService.savePlan(activePlan!);
 
       activeSession = null;
-      _activePlan = null;
+      activePlan = null;
       currentWeekSelection = null;
       daysForWeek = {};
     } finally {
@@ -176,7 +176,7 @@ class PlanProvider extends ChangeNotifier {
 
   // Helper methods
   Future<void> _updateForWeek(int totalWeek) async {
-    if (_activePlan == null || activeSession == null) throw Exception();
+    if (activePlan == null || activeSession == null) throw Exception();
 
     final dateInSelectedWeek = activeSession!.startDate.add(
       Duration(days: (totalWeek - 1) * 7),
@@ -185,24 +185,23 @@ class PlanProvider extends ChangeNotifier {
       Duration(days: dateInSelectedWeek.weekday - 1),
     );
 
-    final endOfWeek = startOfWeek.add(Duration(days: 6));
+    final endOfWeek = startOfWeek
+        .add(Duration(days: 7))
+        .subtract(Duration(milliseconds: 1));
     currentWeekSelection = WeekSelectionResult(
       selectedTotalWeek: totalWeek,
       startOfWeek: startOfWeek,
       endOfWeek: endOfWeek,
     );
-    int weekNumber = weekFromAbsoluteWeek(
-      totalWeek,
-      _activePlan!.weeksPerCycle,
-    );
+    int weekNumber = weekFromAbsoluteWeek(totalWeek, activePlan!.weeksPerCycle);
     final planDaysForWeek = await _isarService.findDaysForWeek(
       weekNumber,
-      _activePlan!,
+      activePlan!,
     );
     final workoutsInWeek = await _isarService.findWorkoutsForWeek(
       startOfWeek,
       endOfWeek,
-      _activePlan!,
+      activePlan!,
     );
 
     daysForWeek = {
@@ -243,25 +242,25 @@ class PlanProvider extends ChangeNotifier {
     if (activeSession!.plan.value == null) {
       await activeSession!.plan.load();
     }
-    _activePlan = activeSession!.plan.value;
-    if (_activePlan == null) throw Exception("plan bound to session not found");
+    activePlan = activeSession!.plan.value;
+    if (activePlan == null) throw Exception("plan bound to session not found");
     await _updateForWeek(activeSession!.lastCompletedAbsoluteWeek + 1);
   }
 
   // getters
   int get currentWeekInCycle {
-    if (_activePlan == null || currentWeekSelection == null) return -1;
+    if (activePlan == null || currentWeekSelection == null) return -1;
     return weekFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
-      _activePlan!.weeksPerCycle,
+      activePlan!.weeksPerCycle,
     );
   }
 
   int get currentCycle {
-    if (_activePlan == null || currentWeekSelection == null) return -1;
+    if (activePlan == null || currentWeekSelection == null) return -1;
     return cycleFromAbsoluteWeek(
       currentWeekSelection!.selectedTotalWeek,
-      _activePlan!.weeksPerCycle,
+      activePlan!.weeksPerCycle,
     );
   }
 
