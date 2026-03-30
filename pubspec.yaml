@@ -1,7 +1,7 @@
 name: fitness_app
-description: "A new Flutter project."
+description: "A professional fitness tracking application."
 publish_to: "none"
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
   sdk: ^3.10.1
@@ -9,22 +9,71 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
   isar_community: ^3.3.0
   isar_community_flutter_libs: ^3.3.0
-  path_provider: any
-  provider: any
-  intl: any
-  table_calendar: any
-  google_fonts: any
-  shared_preferences: any
-  week_of_year: any
-  url_launcher: any
+
+
+  provider: ^6.1.5+1
+  path_provider: ^2.1.5
+  shared_preferences: ^2.5.4
+
+  intl: ^0.20.2
+  table_calendar: ^3.2.0
+  week_of_year: ^2.2.0
+  url_launcher: ^6.3.2
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+
+  build_runner: ^2.7.1
   isar_community_generator: ^3.3.0
-  build_runner: any
+
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.4.0
+
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/logo-main.png
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+
+    - family: Poppins
+      fonts:
+        - asset: assets/fonts/Poppins-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Poppins-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Poppins-Bold.ttf
+          weight: 700
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/logo-main.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#FFFFFF" # Změň tento hex kód na barvu pozadí tvé aplikace
+  image: "assets/images/logo-main.png"
+  android: true
+  ios: true
+  android_12:
+    image: "assets/images/logo-main.png"
+    color: "#FFFFFF"

@@ -1,13 +1,18 @@
+import 'dart:math' as math;
+
 import 'package:fitness_app/models/workout_set.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:flutter/material.dart';
 
 class PerformanceHistory extends StatelessWidget {
   final List<WorkoutSet> loggedSets;
+  final RepRange targetReps;
   final VoidCallback? copyToCurrent;
 
   const PerformanceHistory({
     super.key,
     required this.loggedSets,
+    required this.targetReps,
     this.copyToCurrent,
   });
 
@@ -282,14 +287,38 @@ class PerformanceHistory extends StatelessWidget {
     );
   }
 
-  //todo implement clamping via rep-range
   WorkoutSet? _findBestSet() {
     final completedSets = loggedSets.where((s) => !s.isSkipped).toList();
     if (completedSets.isEmpty) return null;
 
+    final int repClamp;
+    switch (targetReps) {
+      case RepRange.lowRep:
+        repClamp = 6;
+        break;
+      case RepRange.strength:
+        repClamp = 9;
+        break;
+      case RepRange.hypertrophy:
+        repClamp = 13;
+        break;
+      case RepRange.extendedHypertrophy:
+        repClamp = 16;
+        break;
+      case RepRange.highRep:
+        repClamp = 21;
+        break;
+    }
+
     return completedSets.reduce((best, current) {
-      final bestScore = best.weight * (1 + best.reps / 30);
-      final currentScore = current.weight * (1 + current.reps / 30);
+      final double effectiveBestReps = math.min(best.reps, repClamp).toDouble();
+      final double effectiveCurrentReps = math
+          .min(current.reps, repClamp)
+          .toDouble();
+
+      final bestScore = best.weight * (1 + effectiveBestReps / 30);
+      final currentScore = current.weight * (1 + effectiveCurrentReps / 30);
+
       return currentScore > bestScore ? current : best;
     });
   }

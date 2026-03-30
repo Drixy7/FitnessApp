@@ -1,61 +1,71 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTextStyles {
-  //TODO chooseFONT and remove dependency on internet by downloading font instead of using getters
+  // Dependency na internetu a google_fonts byla úspěšně odstraněna!
   AppTextStyles._();
 
-  // --- DISPLAY (Obří texty) ---
-  static TextStyle get displayLarge =>
-      GoogleFonts.roboto(fontSize: 57, fontWeight: FontWeight.bold);
+  static const TextStyle displayLarge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 57,
+    fontWeight: FontWeight.bold, // 700
+  );
 
-  static TextStyle get displayMedium =>
-      GoogleFonts.roboto(fontSize: 45, fontWeight: FontWeight.bold);
+  static const TextStyle displayMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 45,
+    fontWeight: FontWeight.bold, // 700
+  );
 
-  // --- HEADLINE (Nadpisy obrazovek) ---
-  static TextStyle get headlineLarge => GoogleFonts.roboto(
+  static const TextStyle headlineLarge = TextStyle(
+    fontFamily: 'Poppins',
     fontSize: 32,
     fontWeight: FontWeight.w600, // Semi-bold
   );
 
-  static TextStyle get headlineMedium =>
-      GoogleFonts.roboto(fontSize: 28, fontWeight: FontWeight.w600);
-
-  // --- TITLE (Nadpisy prvků/cviků) ---
-  static TextStyle get titleLarge => GoogleFonts.roboto(
-    fontSize: 24,
-    fontWeight: FontWeight.w600, // Medium
+  static const TextStyle headlineMedium = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 28,
+    fontWeight: FontWeight.w600, // Semi-bold
   );
 
-  static TextStyle get titleMedium => GoogleFonts.roboto(
+  static const TextStyle titleLarge = TextStyle(
+    fontFamily: 'Poppins',
+    fontSize: 24,
+    fontWeight: FontWeight.w600, // Semi-bold
+  );
+
+  static const TextStyle titleMedium = TextStyle(
+    fontFamily: 'Poppins',
     fontSize: 18,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w600, // Semi-bold
     letterSpacing: 0.15,
   );
 
-  // --- BODY (Dlouhé texty) ---
-  static TextStyle get bodyLarge => GoogleFonts.roboto(
+  static const TextStyle bodyLarge = TextStyle(
+    fontFamily: 'Inter',
     fontSize: 18,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.normal, // 400
     letterSpacing: 0.5,
   );
 
-  static TextStyle get bodyMedium => GoogleFonts.roboto(
+  static const TextStyle bodyMedium = TextStyle(
+    fontFamily: 'Inter',
     fontSize: 16,
-    fontWeight: FontWeight.normal,
+    fontWeight: FontWeight.normal, // 400
     letterSpacing: 0.25,
   );
 
-  // --- LABEL (Tlačítka a popisky) ---
-  static TextStyle get labelLarge => GoogleFonts.roboto(
+  static const TextStyle labelLarge = TextStyle(
+    fontFamily: 'Inter',
     fontSize: 14,
-    fontWeight: FontWeight.bold, // Tlačítka chtějí být výrazná
+    fontWeight: FontWeight.bold,
     letterSpacing: 0.1,
   );
 
-  static TextStyle get labelSmall => GoogleFonts.roboto(
+  static const TextStyle labelSmall = TextStyle(
+    fontFamily: 'Inter',
     fontSize: 12,
-    fontWeight: FontWeight.w500,
+    fontWeight: FontWeight.w500, // 500 - Medium
     letterSpacing: 0.5,
   );
 }

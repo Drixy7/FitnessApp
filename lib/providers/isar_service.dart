@@ -2,8 +2,6 @@ import 'dart:math';
 
 import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/utils/datatypes.dart';
-import 'package:fitness_app/utils/formatters.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:isar_community/isar.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -134,6 +132,18 @@ class IsarService {
     );
   }
 
+  Future<void> seedDefaultPlanC() async {
+    await seedPlan(
+      planName: PlanCDefinition.name,
+      weeksPerCycle: PlanCDefinition.weeksPerCycle,
+      description: PlanCDefinition.description,
+      blueprintsOfDays: PlanCDefinition.blueprintsOfDays,
+      dayOrderAndNames: PlanCDefinition.dayOrderAndNames,
+      difficulty: PlanCDefinition.difficulty,
+      progressionMap: PlanCDefinition.progressionMap,
+    );
+  }
+
   Future<PlanDay> _savePlanDay({
     required Isar isar,
     required String dayName,
@@ -151,24 +161,16 @@ class IsarService {
     await isar.planDays.put(planDay);
 
     final List<PlanDayExercise> planDayExercises = [];
-    final progressionWeeks = progressionMap.keys.toList();
+    final currentWeekProgression = progressionMap[weekNumber];
 
     for (final (int index, BlueprintEntry entry) in blueprint.indexed) {
       int baseSets = entry.sets;
       RepRange repRange = entry.reps;
 
-      int progression = 0;
-
-      if (progressionWeeks.contains(weekNumber)) {
-        final exercisesForProgression = progressionMap[weekNumber]!.keys
-            .toList();
-        if (exercisesForProgression.contains(entry.exerciseName)) {
-          progression = progressionMap[weekNumber]![entry.exerciseName]!;
-        }
-      }
-
+      int progression = currentWeekProgression?[entry.exerciseName] ?? 0;
       if (weekNumber == deloadWeekNumber) {
         baseSets = 2;
+        progression = 0;
       }
 
       final planDayExercise = PlanDayExercise()
@@ -592,7 +594,7 @@ class IsarService {
     });
   }
 
-  //todo testing methods to remove:
+  /*
   // Seeding Weight Data
   Future<void> seedTestWeightLog() async {
     final isar = await db;
@@ -703,7 +705,5 @@ class IsarService {
     debugPrint(
       '✅ Testovací data (historie na $weeksBack týdnů) byla úspěšně zapsána do databáze!',
     );
-  }
-
-  //todo Implement ALL IN ONE TESTING METHODS for workouts
+  }*/
 }

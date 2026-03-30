@@ -2,7 +2,7 @@ import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/models/workout_set.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/utils/datatypes.dart';
-import 'package:fitness_app/widgets/warning_dialog.dart';
+import 'package:fitness_app/widgets/dialogs/warning_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';

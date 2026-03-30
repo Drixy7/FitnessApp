@@ -78,7 +78,11 @@ class _WeekChooserViewState extends State<WeekChooserView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(widget.leadingText, style: textStyles.headlineMedium),
+        Text(
+          widget.leadingText,
+          style: textStyles.headlineMedium,
+          textAlign: TextAlign.center,
+        ),
         SizedBox(height: 30),
         Container(
           padding: const EdgeInsetsGeometry.all(10),

@@ -8,7 +8,6 @@ import 'package:fitness_app/widgets/pickers/week_chooser_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-//todo maybe add Streak,
 
 class BodyWeightStatisticsScreen extends StatefulWidget {
   const BodyWeightStatisticsScreen({super.key});
@@ -370,7 +369,7 @@ class _BodyWeightStatisticsScreenState
               return ListTile(
                 dense: true,
                 titleAlignment: ListTileTitleAlignment.center,
-                minLeadingWidth: 210,
+                minLeadingWidth: 200,
                 leading: Text(
                   DateFormat("EEE - d.M").format(dayDate),
                   style: theme.textTheme.labelMedium,

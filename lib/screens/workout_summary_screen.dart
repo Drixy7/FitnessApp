@@ -120,7 +120,10 @@ class _ExerciseCardState extends State<_ExerciseCard> {
           if (_isExpanded)
             Padding(
               padding: const EdgeInsets.fromLTRB(16.0, 0, 16.0, 16.0),
-              child: PerformanceHistory(loggedSets: widget.sets),
+              child: PerformanceHistory(
+                loggedSets: widget.sets,
+                targetReps: widget.exercise.targetReps,
+              ),
             ),
         ],
       ),

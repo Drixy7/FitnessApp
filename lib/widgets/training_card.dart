@@ -1,7 +1,7 @@
 import 'package:fitness_app/models/plan_day.dart';
 import 'package:fitness_app/models/workout.dart'; // Ensure enum WorkoutStatus is here
 import 'package:fitness_app/utils/datatypes.dart';
-import 'package:fitness_app/widgets/warning_dialog.dart';
+import 'package:fitness_app/widgets/dialogs/warning_dialog.dart';
 import 'package:flutter/material.dart';
 
 class TrainingCard extends StatelessWidget {

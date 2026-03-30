@@ -7,10 +7,6 @@ import 'package:provider/provider.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  // --- Helper methods to keep build() clean ---
-  //todo implement better about
-  //todo find yourself an Icon.
-
   void _showPlanDialog(BuildContext context) {
     //Variables for dynamic show of content
     final planProvider = context.read<PlanProvider>();
@@ -100,7 +96,13 @@ class SettingsScreen extends StatelessWidget {
       context: context,
       applicationName: "Fitness App",
       applicationVersion: "1.0.0",
-      applicationIcon: const FlutterLogo(size: 40),
+      applicationIcon: Image.asset(
+        "assets/images/logo-main.png",
+        width: 75,
+        height: 75,
+        fit: BoxFit.contain,
+      ),
+
       children: [
         const Text(
           "This app helps you track your workouts and follow personalized plans.",

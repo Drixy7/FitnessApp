@@ -244,6 +244,15 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
+                    Navigator.of(context).pop(null);
+                  },
+                  child: const Text("Cancel"),
+                ),
+              ),
+              SizedBox(width: 30),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
                     final Map<String, int>? dayOrderResult =
                         _hasDayOrderChanged() ? _dayOrder : null;
                     final result = PlanPersonalizationResult(
@@ -254,15 +263,6 @@ class _PlanPersonalizationState extends State<PlanPersonalization> {
                     _showWarningDialog(result, context);
                   },
                   child: const Text("Start Plan"),
-                ),
-              ),
-              SizedBox(width: 30),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(null);
-                  },
-                  child: const Text("Cancel"),
                 ),
               ),
             ],

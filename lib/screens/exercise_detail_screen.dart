@@ -1,8 +1,8 @@
 import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/widgets/performance_history.dart';
-import 'package:fitness_app/widgets/value_incrementer.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../models/workout_set.dart'; // Needed for input formatters
@@ -289,14 +289,14 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                 style: Theme.of(context).textTheme.titleLarge,
                               ),
                               Expanded(
-                                child: ValueIncrementer(
+                                child: _ValueIncrementer(
                                   controller: _weightControllers[index],
                                   incrementValue: 2.5,
                                   isDecimal: true,
                                 ),
                               ),
                               Expanded(
-                                child: ValueIncrementer(
+                                child: _ValueIncrementer(
                                   controller: _repsControllers[index],
                                   incrementValue: 1,
                                   isDecimal: false,
@@ -396,6 +396,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                 .planDayExercise
                                 .orderIndex] ??
                             [],
+                        targetReps: widget.planDayExercise.targetReps,
                         copyToCurrent: () => {
                           _copyHistoricalWorkoutSets(
                             workoutProvider.lastWorkoutSets[widget
@@ -416,6 +417,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                                 .planDayExercise
                                 .orderIndex] ??
                             [],
+                        targetReps: widget.planDayExercise.targetReps,
                         copyToCurrent: () => {
                           _copyHistoricalWorkoutSets(
                             workoutProvider.lastCycleWorkoutSets[widget
@@ -434,6 +436,76 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _ValueIncrementer extends StatelessWidget {
+  final TextEditingController controller;
+  final double incrementValue;
+  final bool isDecimal;
+
+  const _ValueIncrementer({
+    required this.controller,
+    this.incrementValue = 1.0,
+    this.isDecimal = false,
+  });
+
+  void _increment() {
+    final currentValue = double.tryParse(controller.text) ?? 0.0;
+    final newValue = currentValue + incrementValue;
+    // Format the string to avoid unnecessary decimals for integers
+    controller.text = isDecimal
+        ? newValue.toStringAsFixed(2)
+        : newValue.toInt().toString();
+  }
+
+  void _decrement() {
+    final currentValue = double.tryParse(controller.text) ?? 0.0;
+    final newValue = currentValue - incrementValue;
+    if (newValue >= 0) {
+      // Don't allow negative values
+      controller.text = isDecimal
+          ? newValue.toStringAsFixed(2)
+          : newValue.toInt().toString();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // --- Minus Button ---
+        IconButton(
+          icon: const Icon(Icons.remove_circle_outline),
+          onPressed: _decrement,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+
+        // --- TextField ---
+        SizedBox(
+          width: 80,
+          child: TextField(
+            controller: controller,
+            textAlign: TextAlign.center, // Center the text
+            decoration: const InputDecoration(border: OutlineInputBorder()),
+            keyboardType: TextInputType.numberWithOptions(decimal: isDecimal),
+            inputFormatters: isDecimal
+                ? [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))]
+                : [FilteringTextInputFormatter.digitsOnly],
+          ),
+        ),
+
+        // --- Plus Button ---
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline),
+          onPressed: _increment,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
     );
   }
 }

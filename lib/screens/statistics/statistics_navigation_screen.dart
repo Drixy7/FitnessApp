@@ -3,6 +3,7 @@ import 'package:fitness_app/screens/statistics/body_weight_statistics_screen.dar
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/body_weight_statistics_provider.dart';
 import 'lifting_statistics_screen.dart';
 
 class StatisticsNavigationScreen extends StatelessWidget {
@@ -60,13 +61,18 @@ class StatisticsNavigationScreen extends StatelessWidget {
                             theme.colorScheme.primary.withOpacity(0.8),
                           ],
                         ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  BodyWeightStatisticsScreen(),
-                            ),
-                          );
+                        onTap: () async {
+                          await context
+                              .read<BodyWeightStatisticsProvider>()
+                              .loadBodyWeightStats();
+                          if (context.mounted) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    BodyWeightStatisticsScreen(),
+                              ),
+                            );
+                          }
                         },
                       ),
                       const SizedBox(height: 24),

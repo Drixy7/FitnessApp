@@ -14,9 +14,11 @@ import 'package:path_provider_android/path_provider_android.dart';
 import 'package:path_provider_linux/path_provider_linux.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   if (Platform.isWindows) {
     PathProviderWindows.registerWith();
   } else if (Platform.isLinux) {
@@ -24,38 +26,50 @@ Future<void> main() async {
   } else if (Platform.isAndroid) {
     PathProviderAndroid.registerWith();
   }
+
   final isarService = IsarService();
-  await isarService.clearDatabase();
-  await isarService.seedDefaultExercises();
-  await isarService.seedDefaultPlanA();
-  await isarService.seedDefaultPlanB();
-  await isarService.seedTestWeightLog();
+
+  final prefs = await SharedPreferences.getInstance();
+  final isFirstLaunch = prefs.getBool('isFirstLaunch') ?? true;
+
+  if (isFirstLaunch) {
+    await isarService.seedDefaultExercises();
+    await isarService.seedDefaultPlanA();
+    await isarService.seedDefaultPlanB();
+    await isarService.seedDefaultPlanC();
+
+    await prefs.setBool('isFirstLaunch', false);
+  }
+
+  // ODSTRANĚNO PRO RELEASE:
+  // await isarService.clearDatabase();
+  // await isarService.seedTestWeightLog();
 
   runApp(
     MultiProvider(
       providers: [
-        Provider<IsarService>.value(value: isarService),
-        ChangeNotifierProvider(
+        Provider<IsarService>(create: (_) => isarService),
+        ChangeNotifierProvider<PlanProvider>(
           create: (context) => PlanProvider(context.read<IsarService>()),
         ),
-        ChangeNotifierProvider(
+        ChangeNotifierProvider<WorkoutProvider>(
           create: (context) => WorkoutProvider(
             context.read<IsarService>(),
             context.read<PlanProvider>(),
           ),
         ),
-        ChangeNotifierProvider<ThemeProvider>.value(value: ThemeProvider()),
-        ChangeNotifierProvider<NavigationProvider>.value(
-          value: NavigationProvider(),
+        ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider<NavigationProvider>(
+          create: (_) => NavigationProvider(),
         ),
-        ChangeNotifierProvider<BodyWeightStatisticsProvider>.value(
-          value: BodyWeightStatisticsProvider(isarService),
+        ChangeNotifierProvider<BodyWeightStatisticsProvider>(
+          create: (_) => BodyWeightStatisticsProvider(isarService),
         ),
-        ChangeNotifierProvider<LiftingStatisticsProvider>.value(
-          value: LiftingStatisticsProvider(isarService),
+        ChangeNotifierProvider<LiftingStatisticsProvider>(
+          create: (_) => LiftingStatisticsProvider(isarService),
         ),
       ],
-      child: MainApp(),
+      child: const MainApp(),
     ),
   );
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:fitness_app/models/exercise.dart';
 import 'package:fitness_app/models/lifting_statistics_models.dart';
@@ -88,8 +89,8 @@ class LiftingStatisticsProvider extends ChangeNotifier {
         if (!set.exercise.isLoaded) {
           futures.add(set.exercise.load());
         }
-        await Future.wait(futures);
       }
+      await Future.wait(futures);
 
       for (final set in allSets) {
         final wId = set.workout.value!.id;
@@ -105,7 +106,7 @@ class LiftingStatisticsProvider extends ChangeNotifier {
           repClamp = 6;
           break;
         case RepRange.strength:
-          repClamp = 10;
+          repClamp = 9;
           break;
         case RepRange.hypertrophy:
           repClamp = 13;
@@ -114,7 +115,7 @@ class LiftingStatisticsProvider extends ChangeNotifier {
           repClamp = 16;
           break;
         case RepRange.highRep:
-          repClamp = 20;
+          repClamp = 21;
           break;
       }
 
@@ -129,16 +130,18 @@ class LiftingStatisticsProvider extends ChangeNotifier {
           }
           continue;
         }
-        if (set.reps > repClamp) {
-          continue;
-        }
+        final double effectiveReps = math.min(set.reps, repClamp).toDouble();
 
-        final erm = set.weight * (1 + set.reps / 30);
+        final erm = set.weight * (1 + effectiveReps / 30);
         if (erm > oneRepMax) {
           oneRepMax = erm;
           bestSet = set;
         }
-        if (set.reps == 1) maxSet = set;
+        if (set.reps == 1) {
+          if (maxSet == null || set.weight > maxSet.weight) {
+            maxSet = set;
+          }
+        }
       }
       bestSet != null
           ? exerciseSummary = ExerciseSummary(

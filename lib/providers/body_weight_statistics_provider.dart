@@ -132,8 +132,7 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
     List<WeightLog> allLogs,
     List<WeeklyWeightSegment> segments,
   ) {
-    //todo předělat aby mohl min a max být nula, když nejsou data + vylepšit průměrný gain vzorec... + nějak přidat streak!
-    if (segments.isEmpty) {
+    if (segments.isEmpty || allLogs.isEmpty) {
       return WeightSummary(
         lowestInRange: 0,
         highestInRange: 0,
@@ -142,6 +141,7 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
         currentWeight: 0,
       );
     }
+
     double globalMin = segments
         .map((e) => e.minWeight)
         .reduce((a, b) => a < b ? a : b);
@@ -149,14 +149,30 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
         .map((e) => e.maxWeight)
         .reduce((a, b) => a > b ? a : b);
 
-    // Výpočet průměrné změny (Gain/Loss) podle tvého zadání:
-    // (Poslední týdenní průměr - První týdenní průměr) / Počet týdnů
     double avgChange = 0;
+    int n = segments.length;
 
-    if (segments.length >= 2) {
-      double firstWeekAvg = segments.first.averageWeight;
-      double lastWeekAvg = segments.last.averageWeight;
-      avgChange = (lastWeekAvg - firstWeekAvg) / segments.length;
+    if (n >= 2) {
+      double sumX = 0;
+      double sumY = 0;
+      double sumXY = 0;
+      double sumXX = 0;
+
+      for (int i = 0; i < n; i++) {
+        double x = i.toDouble();
+        double y = segments[i].averageWeight;
+
+        sumX += x;
+        sumY += y;
+        sumXY += (x * y);
+        sumXX += (x * x);
+      }
+
+      double denominator = (n * sumXX) - (sumX * sumX);
+
+      if (denominator != 0) {
+        avgChange = ((n * sumXY) - (sumX * sumY)) / denominator;
+      }
     }
 
     return WeightSummary(

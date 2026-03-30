@@ -33,7 +33,9 @@ class PlanProvider extends ChangeNotifier {
       activeSession = await _isarService.findActivePlanSession();
 
       if (activeSession != null) {
-        await _loadDataForActiveSession();
+        await activeSession!.plan.load();
+        activePlan = activeSession!.plan.value;
+        goToCurrentWeek();
       }
     } finally {
       isLoading = false;
@@ -153,6 +155,17 @@ class PlanProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void goToCurrentWeek() async {
+    final now = DateTime.now();
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
+    final int totalWeek = calculateTotalWeekForDate(monday);
+    goToAnyWeek(totalWeek);
+  }
+
   void goToAnyWeek(int week) async {
     await _updateForWeek(week);
     notifyListeners();
@@ -248,6 +261,12 @@ class PlanProvider extends ChangeNotifier {
   }
 
   // getters
+  int calculateTotalWeekForDate(DateTime date) {
+    if (activeSession == null) return 1;
+    final difference = date.difference(activeSession!.startDate).inDays;
+    return (difference / 7).floor() + 1;
+  }
+
   int get currentWeekInCycle {
     if (activePlan == null || currentWeekSelection == null) return -1;
     return weekFromAbsoluteWeek(

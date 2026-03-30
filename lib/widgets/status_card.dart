@@ -7,35 +7,48 @@ import 'package:provider/provider.dart';
 class StatusCard extends StatelessWidget {
   const StatusCard({super.key});
 
+  bool _checkViewingCurrentWeek(PlanProvider provider) {
+    final now = DateTime.now();
+    final monday = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).subtract(Duration(days: now.weekday - 1));
+    if (provider.currentWeekSelection == null) {
+      return true;
+    }
+    return provider.currentWeekSelection!.startOfWeek == monday;
+  }
+
+  void _showWeekPicker(BuildContext context) async {
+    final planProvider = context.read<PlanProvider>();
+    if (planProvider.activeSession == null) return;
+
+    final WeekSelectionResult? result =
+        await showModalBottomSheet<WeekSelectionResult>(
+          isScrollControlled: true,
+          context: context,
+          builder: (ctx) {
+            return Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: WeekChooserView(
+                leadingText: "Select a week to view or edit",
+                firstAvailableDate: planProvider.activeSession!.startDate,
+                initialWeekSelection: planProvider.currentWeekSelection,
+              ),
+            );
+          },
+        );
+    if (result != null) {
+      planProvider.goToAnyWeek(result.selectedTotalWeek);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final planProvider = context.watch<PlanProvider>();
     final textThemes = Theme.of(context).textTheme;
     final colors = Theme.of(context).colorScheme;
-
-    void showWeekPicker() async {
-      if (planProvider.activeSession == null) return;
-
-      final WeekSelectionResult? result =
-          await showModalBottomSheet<WeekSelectionResult>(
-            isScrollControlled: true,
-            context: context,
-            builder: (ctx) {
-              return Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: WeekChooserView(
-                  leadingText: "Select a week to view or edit",
-                  firstAvailableDate: planProvider.activeSession!.startDate,
-                  initialWeekSelection: planProvider.currentWeekSelection,
-                ),
-              );
-            },
-          );
-      if (result != null) {
-        planProvider.currentWeekSelection = result;
-        planProvider.goToAnyWeek(result.selectedTotalWeek);
-      }
-    }
 
     // -- Data Extraction & Null Safety --
     final planName =
@@ -44,6 +57,7 @@ class StatusCard extends StatelessWidget {
     final cycleNum = planProvider.currentCycle;
     final dateRange = planProvider.formattedDateRange;
     final completion = planProvider.currentCompletion.clamp(0.0, 1.0);
+    final isViewingCurrentWeek = _checkViewingCurrentWeek(planProvider);
 
     return Card(
       elevation: 2,
@@ -85,7 +99,9 @@ class StatusCard extends StatelessWidget {
                   tooltip: "Previous Week",
                 ),
                 GestureDetector(
-                  onTap: showWeekPicker,
+                  onTap: () {
+                    _showWeekPicker(context);
+                  },
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
@@ -158,10 +174,34 @@ class StatusCard extends StatelessWidget {
                 ),
               ],
             ),
+            // Add this block below the Row containing the circular indicators
+            const SizedBox(height: 8),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isViewingCurrentWeek ? 0.0 : 1.0,
+              child: Visibility(
+                visible: !isViewingCurrentWeek,
+                maintainState: true,
+                maintainAnimation: true,
+                maintainSize:
+                    true, // Zabrání tomu, aby se UI "scvrklo", když tlačítko zmizí
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    visualDensity: VisualDensity.compact,
+                    foregroundColor: colors.primary,
+                  ),
+                  onPressed: planProvider.goToCurrentWeek,
+                  icon: const Icon(Icons.history_rounded, size: 18),
+                  label: const Text("Back to current week"),
+                ),
+              ),
+            ),
 
             const SizedBox(height: 24),
             GestureDetector(
-              onTap: showWeekPicker,
+              onTap: () {
+                _showWeekPicker(context);
+              },
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

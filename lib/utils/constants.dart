@@ -480,7 +480,7 @@ class PlanADefinition {
       ),
       BlueprintEntry(
         exerciseName: "Machine Standing Calf Raise",
-        sets: 3,
+        sets: 2,
         reps: RepRange.extendedHypertrophy,
       ),
     ],
@@ -503,17 +503,12 @@ class PlanADefinition {
         reps: RepRange.hypertrophy,
       ),
       BlueprintEntry(
-        exerciseName: "Dumbbell Lateral Raises",
+        exerciseName: "Machine Lateral Raises",
         sets: 2,
         reps: RepRange.extendedHypertrophy,
       ),
       BlueprintEntry(
         exerciseName: "Cable Rope Pushdown",
-        sets: 2,
-        reps: RepRange.hypertrophy,
-      ),
-      BlueprintEntry(
-        exerciseName: "Cable Bar Curl",
         sets: 2,
         reps: RepRange.hypertrophy,
       ),
@@ -533,7 +528,7 @@ class PlanADefinition {
     4: [
       BlueprintEntry(
         exerciseName: "Machine Seated Calf Raise",
-        sets: 3,
+        sets: 2,
         reps: RepRange.highRep,
       ),
       BlueprintEntry(
@@ -552,22 +547,22 @@ class PlanADefinition {
         reps: RepRange.hypertrophy,
       ),
       BlueprintEntry(
-        exerciseName: "Cable Shrugs",
-        sets: 2,
-        reps: RepRange.extendedHypertrophy,
-      ),
-      BlueprintEntry(
-        exerciseName: "Machine Lateral Raises",
-        sets: 2,
-        reps: RepRange.hypertrophy,
-      ),
-      BlueprintEntry(
         exerciseName: "Reverse fly",
         sets: 2,
         reps: RepRange.extendedHypertrophy,
       ),
       BlueprintEntry(
+        exerciseName: "Dumbbell Shrugs",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
         exerciseName: "Preacher Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Crunch",
         sets: 2,
         reps: RepRange.hypertrophy,
       ),
@@ -586,14 +581,9 @@ class PlanADefinition {
         reps: RepRange.strength,
       ),
       BlueprintEntry(
-        exerciseName: "Dumbbell Shoulder Press",
+        exerciseName: "Dumbbell Lateral Raises",
         sets: 2,
-        reps: RepRange.strength,
-      ),
-      BlueprintEntry(
-        exerciseName: "Barbell Close Grip Bench Press",
-        sets: 2,
-        reps: RepRange.strength,
+        reps: RepRange.extendedHypertrophy,
       ),
       BlueprintEntry(
         exerciseName: "Chest supported T Bar Row",
@@ -601,12 +591,17 @@ class PlanADefinition {
         reps: RepRange.hypertrophy,
       ),
       BlueprintEntry(
+        exerciseName: "Barbell Close Grip Bench Press",
+        sets: 2,
+        reps: RepRange.strength,
+      ),
+      BlueprintEntry(
         exerciseName: "Cable Rope Overhead Triceps Extension",
         sets: 2,
         reps: RepRange.hypertrophy,
       ),
       BlueprintEntry(
-        exerciseName: "Cable Hammer Curl",
+        exerciseName: "Dumbbell Hammer Curl",
         sets: 2,
         reps: RepRange.hypertrophy,
       ),
@@ -621,64 +616,7 @@ class PlanADefinition {
   };
 
   static const Difficulty difficulty = Difficulty.intermediate;
-  final List<String> volumeIncrease = [
-    "Barbell Squat",
-    "Barbell RDL",
-    "Bench Press",
-    "Machine Pec fly",
-    "Cable Rope Pushdown",
-    "Cable Bar Curl",
-    "Barbell Deadlift",
-    "Seated Cable Row",
-    "Lat Pulldown",
-    "Reverse fly",
-    "Pull-Ups",
-    "Chest supported T Bar Row",
-    "Cable Rope Overhead Triceps Extension",
-    "Cable Hammer Curl",
-  ];
-
-  static const Map<int, Map<String, int>> progressionMap = {
-    3: {
-      "Seated Cable Row": 1,
-      "Lat Pulldown": 1,
-      "Reverse fly": 1,
-      "Machine Crunch": 1,
-      "Cable Wrist Curl": 1,
-      "Leg Extensions": 1,
-      "Laying Leg Curl": 1,
-      "Cable Shrugs": 1,
-      "Cable Rope Overhead Triceps Extension": 1,
-      "Cable Hammer Curl": 1,
-    },
-    4: {
-      "Seated Cable Row": 1,
-      "Lat Pulldown": 1,
-      "Reverse fly": 1,
-      "Machine Crunch": 1,
-      "Cable Wrist Curl": 1,
-      "Leg Extensions": 1,
-      "Laying Leg Curl": 1,
-      "Cable Shrugs": 1,
-      "Cable Rope Overhead Triceps Extension": 1,
-      "Cable Hammer Curl": 1,
-    },
-    5: {
-      "Seated Cable Row": 1,
-      "Lat Pulldown": 1,
-      "Reverse fly": 1,
-      "Machine Crunch": 1,
-      "Cable Wrist Curl": 1,
-      "Leg Extensions": 1,
-      "Laying Leg Curl": 1,
-      "Cable Shrugs": 1,
-      "Cable Rope Overhead Triceps Extension": 1,
-      "Cable Hammer Curl": 1,
-      "Dumbbell Lateral Raises": 1,
-      "Cable Rope Pushdown": 1,
-      "Cable Bar Curl": 1,
-    },
-  };
+  static const Map<int, Map<String, int>> progressionMap = {};
 }
 
 class PlanBDefinition {
@@ -847,5 +785,153 @@ class PlanBDefinition {
     },
     3: {"Pull-Ups": 1},
     4: {"Pull-Ups": 1},
+  };
+}
+
+class PlanCDefinition {
+  static const String name = "Beginner Full Body";
+  static const String description =
+      "An excellent starting point for beginners. 3 days a week full body routine focused on learning movement patterns safely using machines and dumbbells. 4 weeks cycle.";
+  static const int weeksPerCycle = 4;
+
+  static const Map<int, List<BlueprintEntry>> blueprintsOfDays = {
+    // --- Day 1 (Full Body A) ---
+    1: [
+      BlueprintEntry(
+        exerciseName: "Goblet Squat", // Skvělý na učení dřepu
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Incline Machine Press", // Bezpečné na hrudník
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Lat Pulldown", // Základ na záda
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Shoulder Press",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Cable Rope Pushdown",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Barbell Biceps Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+    ],
+
+    // --- Day 3 (Full Body B) ---
+    3: [
+      BlueprintEntry(
+        exerciseName: "Hack Squat", // Změna na nohy, bezpečné pro začátečníky
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Seated Leg Curl", // Přidání zadní strany stehen
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Push-ups",
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Chest supported T Bar Row",
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Lateral Raises",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Dumbbell Hammer Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Plank",
+        sets: 2,
+        reps: RepRange.extendedHypertrophy,
+      ),
+    ],
+
+    // --- Day 5 (Full Body C) ---
+    5: [
+      BlueprintEntry(
+        exerciseName: "Goblet Squat",
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Machine Pec Fly",
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Lat Pulldown",
+        sets: 3,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Face pulls",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Bench Dips",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Cable Bar Curl",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+      BlueprintEntry(
+        exerciseName: "Crunch",
+        sets: 2,
+        reps: RepRange.hypertrophy,
+      ),
+    ],
+  };
+
+  static const Map<int, String> dayOrderAndNames = {
+    1: "Full Body A",
+    3: "Full Body B",
+    5: "Full Body C",
+  };
+
+  static const Difficulty difficulty = Difficulty.beginner;
+
+  // Můžeme nechat prázdné nebo vybrat klíčové cviky
+  final List<String> volumeIncrease = [
+    "Goblet Squat",
+    "Lat Pulldown",
+    "Incline Machine Press",
+  ];
+
+  static const Map<int, Map<String, int>> progressionMap = {
+    // Ukázka mírné progrese v 3. a 4. týdnu
+    3: {"Goblet Squat": 1, "Lat Pulldown": 1, "Incline Machine Press": 1},
+    4: {
+      "Goblet Squat": 1,
+      "Lat Pulldown": 1,
+      "Incline Machine Press": 1,
+      "Machine Shoulder Press": 1,
+      "Chest supported T Bar Row": 1,
+    },
   };
 }

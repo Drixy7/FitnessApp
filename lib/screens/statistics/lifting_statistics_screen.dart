@@ -7,7 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/lifting_statistics_provider.dart';
-//todo přepsat, přidat bottomSheet pro filtrování tréninků jako transakcí v bance
+//přidat bottomSheet pro filtrování tréninků jako transakcí v bance
 
 class LiftingStatisticsScreen extends StatelessWidget {
   const LiftingStatisticsScreen({super.key});
