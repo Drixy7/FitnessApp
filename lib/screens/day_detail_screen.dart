@@ -1,4 +1,5 @@
 import 'package:fitness_app/providers/workout_provider.dart';
+import 'package:fitness_app/utils/datatypes.dart';
 import 'package:fitness_app/widgets/exercise_card.dart';
 import 'package:fitness_app/widgets/workout_timer.dart';
 import 'package:flutter/material.dart';
@@ -76,6 +77,7 @@ class DayDetailScreen extends StatelessWidget {
                 initialSeconds: activeWorkout.durationInSeconds,
                 onSave: workoutProvider.updateWorkoutDuration,
                 onTick: workoutProvider.updateStopwatchSilently,
+                startPaused: activeWorkout.status == WorkoutStatus.completed,
               ),
             ],
           ),

@@ -25,7 +25,9 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       rangeStart = DateTime.now() {
     final now = DateTime.now();
 
-    rangeEnd = DateTime(now.year, now.month, now.day, 23, 59, 59);
+    rangeEnd = DateTime(now.year, now.month, now.day)
+        .add(Duration(days: 8 - now.weekday))
+        .subtract(const Duration(milliseconds: 1));
 
     final thirtyDaysAgo = DateTime(
       now.year,
@@ -56,7 +58,9 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       start.month,
       start.day,
     ).subtract(Duration(days: start.weekday - 1));
-    rangeEnd = DateTime(end.year, end.month, end.day, 23, 59, 59);
+    rangeEnd = DateTime(end.year, end.month, end.day)
+        .add(Duration(days: 8 - end.weekday))
+        .subtract(const Duration(milliseconds: 1));
     await loadBodyWeightStats();
   }
 

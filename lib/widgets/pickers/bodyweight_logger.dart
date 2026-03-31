@@ -112,11 +112,19 @@ class _BodyWeightLoggerState extends State<BodyWeightLogger> {
               ),
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios, size: 20),
-                onPressed: () {
-                  setState(() {
-                    _changeDay(1);
-                  });
-                },
+                onPressed:
+                    _selectedDate ==
+                        DateTime(
+                          DateTime.now().year,
+                          DateTime.now().month,
+                          DateTime.now().day,
+                        )
+                    ? null
+                    : () {
+                        setState(() {
+                          _changeDay(1);
+                        });
+                      },
               ),
             ],
           ),
@@ -150,7 +158,11 @@ class _BodyWeightLoggerState extends State<BodyWeightLogger> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: _canSubmit ? () => _saveLog() : null,
+              onPressed: _canSubmit
+                  ? () async {
+                      await _saveLog();
+                    }
+                  : null,
               child: const Text(
                 "LOG WEIGHT",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

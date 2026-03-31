@@ -1,13 +1,12 @@
 import 'package:fitness_app/models/body_weight_statistics_models.dart';
-import 'package:fitness_app/models/custom_data_package_models.dart';
 import 'package:fitness_app/models/weight_log.dart';
 import 'package:fitness_app/providers/body_weight_statistics_provider.dart';
 import 'package:fitness_app/utils/datatypes.dart';
 import 'package:fitness_app/widgets/pickers/bodyweight_logger.dart';
-import 'package:fitness_app/widgets/pickers/week_chooser_view.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class BodyWeightStatisticsScreen extends StatefulWidget {
   const BodyWeightStatisticsScreen({super.key});
@@ -20,13 +19,26 @@ class BodyWeightStatisticsScreen extends StatefulWidget {
 class _BodyWeightStatisticsScreenState
     extends State<BodyWeightStatisticsScreen> {
   BodyWeightButtonResult _bodyWeightData = BodyWeightButtonResult.daily;
+  DateTime _firstLaunchDate = DateTime(2026);
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await context.read<BodyWeightStatisticsProvider>().loadBodyWeightStats();
-    });
+    _loadFirstLaunchDate();
+  }
+
+  Future<void> _loadFirstLaunchDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? firstLaunchStr = prefs.getString("firstLaunchDate");
+
+    if (firstLaunchStr != null) {
+      setState(() {
+        _firstLaunchDate = DateTime.parse(firstLaunchStr);
+        _firstLaunchDate = _firstLaunchDate.subtract(
+          Duration(days: _firstLaunchDate.weekday - 1),
+        );
+      });
+    }
   }
 
   Future<WeightLog?> _showWeightLogger(WeightLog? weightLog) async {
@@ -44,50 +56,22 @@ class _BodyWeightStatisticsScreenState
   }
 
   Future<void> _showWeekRangePicker() async {
-    WeekSelectionResult? lastWeekResult;
     final provider = context.read<BodyWeightStatisticsProvider>();
     final now = DateTime.now();
-    final lastAvailableDate = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).add(Duration(days: 7 - now.weekday));
+    final lastAvailableDate = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1))
+        .add(Duration(days: 7 - now.weekday));
 
-    final firstWeekResult = await showModalBottomSheet<WeekSelectionResult>(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) {
-        return Padding(
-          padding: EdgeInsetsGeometry.all(15),
-          child: WeekChooserView(
-            firstAvailableDate: DateTime(2025),
-            lastAvailableDate: lastAvailableDate,
-            leadingText: "Choose first week in range",
-          ),
-        );
-      },
-    );
-    if (mounted && firstWeekResult != null) {
-      lastWeekResult = await showModalBottomSheet<WeekSelectionResult>(
-        isScrollControlled: true,
+    if (mounted) {
+      final DateTimeRange? pickedRange = await showDateRangePicker(
         context: context,
-        builder: (ctx) {
-          return Padding(
-            padding: EdgeInsetsGeometry.all(15),
-            child: WeekChooserView(
-              firstAvailableDate: DateTime(2025),
-              lastAvailableDate: lastAvailableDate,
-              leadingText: "Choose last week in range",
-            ),
-          );
-        },
+        firstDate: _firstLaunchDate,
+        lastDate: lastAvailableDate,
       );
-    }
-    if (firstWeekResult != null && lastWeekResult != null && mounted) {
-      await provider.updateDateRange(
-        firstWeekResult.startOfWeek,
-        lastWeekResult.endOfWeek,
-      );
+
+      if (pickedRange != null) {
+        await provider.updateDateRange(pickedRange.start, pickedRange.end);
+      }
     }
   }
 
@@ -179,7 +163,19 @@ class _BodyWeightStatisticsScreenState
   }
 
   Widget _buildControlBar() {
-    final provider = context.read<BodyWeightStatisticsProvider>();
+    final provider = context.watch<BodyWeightStatisticsProvider>();
+    final now = DateTime.now();
+    final maxAvailableDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(Duration(days: 7 - now.weekday));
+
+    final bool canGoForward = provider.rangeEnd.isBefore(maxAvailableDate);
+    final bool canGoBackward = provider.rangeStart.isAfter(_firstLaunchDate);
+    final int windowDays = provider.rangeEnd
+        .difference(provider.rangeStart)
+        .inDays;
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -188,12 +184,23 @@ class _BodyWeightStatisticsScreenState
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               IconButton(
-                onPressed: () async {
-                  await provider.updateDateRange(
-                    provider.rangeStart.subtract(Duration(days: 28)),
-                    provider.rangeEnd.subtract(Duration(days: 28)),
-                  );
-                },
+                onPressed: canGoBackward
+                    ? () async {
+                        DateTime nextStart = provider.rangeStart.subtract(
+                          Duration(days: windowDays + 1),
+                        );
+                        DateTime nextEnd = provider.rangeEnd.subtract(
+                          Duration(days: windowDays + 1),
+                        );
+
+                        if (nextStart.isBefore(_firstLaunchDate)) {
+                          nextStart = _firstLaunchDate;
+                          nextEnd = nextStart.add(Duration(days: windowDays));
+                        }
+
+                        await provider.updateDateRange(nextStart, nextEnd);
+                      }
+                    : null,
                 icon: Icon(Icons.chevron_left),
                 iconSize: 30,
               ),
@@ -213,12 +220,25 @@ class _BodyWeightStatisticsScreenState
               ),
 
               IconButton(
-                onPressed: () async {
-                  await provider.updateDateRange(
-                    provider.rangeStart.add(Duration(days: 28)),
-                    provider.rangeEnd.add(Duration(days: 28)),
-                  );
-                },
+                onPressed: canGoForward
+                    ? () async {
+                        DateTime nextStart = provider.rangeStart.add(
+                          Duration(days: windowDays + 1),
+                        );
+                        DateTime nextEnd = provider.rangeEnd.add(
+                          Duration(days: windowDays + 1),
+                        );
+
+                        if (nextEnd.isAfter(maxAvailableDate)) {
+                          nextEnd = maxAvailableDate;
+                          nextStart = nextEnd.subtract(
+                            Duration(days: windowDays),
+                          );
+                        }
+
+                        await provider.updateDateRange(nextStart, nextEnd);
+                      }
+                    : null,
                 icon: Icon(Icons.chevron_right),
                 iconSize: 30,
               ),

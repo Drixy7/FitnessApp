@@ -34,23 +34,85 @@ class WorkoutSummaryScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          "${_formatDate(workout.date)} - ${workout.planDay.value?.name}",
-        ),
-        backgroundColor: theme.colorScheme.surface,
+        title: const Text('Workout Summary'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent, // Čistší vzhled
+        elevation: 0,
       ),
-      body: exercises.isEmpty
-          ? const Center(child: Text('No exercises in this workout'))
-          : ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: exercises.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                final sets = workoutSets[exercise.orderIndex] ?? [];
-                return _ExerciseCard(exercise: exercise, sets: sets);
-              },
+      body: Column(
+        children: [
+          // --- MODERNÍ HERO KARTA ---
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            child: Card(
+              elevation: 0, // Necháme to ploché, hrajeme si s barvami
+              color: theme.colorScheme.secondaryContainer,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Text(
+                      workout.planDay.value?.name ?? "Workout",
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSecondaryContainer,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildMiniStat(
+                          context,
+                          icon: Icons.calendar_today_rounded,
+                          value: _formatDate(workout.date),
+                          label: "Date",
+                        ),
+                        // Jemná dělící čára uprostřed
+                        Container(
+                          height: 40,
+                          width: 1,
+                          color: theme.colorScheme.onSecondaryContainer
+                              .withOpacity(0.2),
+                        ),
+                        _buildMiniStat(
+                          context,
+                          icon: Icons.timer_outlined,
+                          value: _formatWorkoutDuration(
+                            workout.durationInSeconds,
+                          ),
+                          label: "Duration",
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
+          ),
+
+          // --- SEZNAM CVIKŮ ---
+          Expanded(
+            child: exercises.isEmpty
+                ? const Center(child: Text('No exercises in this workout'))
+                : ListView.separated(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    itemCount: exercises.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final exercise = exercises[index];
+                      final sets = workoutSets[exercise.orderIndex] ?? [];
+                      return _ExerciseCard(exercise: exercise, sets: sets);
+                    },
+                  ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -141,5 +203,50 @@ class _ExerciseCardState extends State<_ExerciseCard> {
 
     final completedSets = widget.sets.where((s) => !s.isSkipped).length;
     return '$completedSets ${completedSets == 1 ? 'set' : 'sets'} completed';
+  }
+}
+
+Widget _buildMiniStat(
+  BuildContext context, {
+  required IconData icon,
+  required String value,
+  required String label,
+}) {
+  final theme = Theme.of(context);
+  return Column(
+    children: [
+      Icon(icon, color: theme.colorScheme.primary, size: 22),
+      const SizedBox(height: 8),
+      Text(
+        value,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSecondaryContainer,
+        ),
+      ),
+      Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: theme.colorScheme.onSecondaryContainer.withOpacity(0.8),
+        ),
+      ),
+    ],
+  );
+}
+
+String _formatWorkoutDuration(int totalSeconds) {
+  if (totalSeconds == 0) return "--";
+
+  final duration = Duration(seconds: totalSeconds);
+  final hours = duration.inHours;
+  final minutes = duration.inMinutes.remainder(60);
+  final seconds = duration.inSeconds.remainder(60);
+
+  if (hours > 0) {
+    return '${hours}h ${minutes}m';
+  } else if (minutes > 0) {
+    return '${minutes}m ${seconds}s';
+  } else {
+    return '${seconds}s';
   }
 }

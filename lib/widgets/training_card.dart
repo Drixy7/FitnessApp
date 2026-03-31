@@ -13,7 +13,6 @@ class TrainingCard extends StatelessWidget {
   final VoidCallback onSkip; // Logic to create skipped workout
   final VoidCallback onUnSkip; // Logic to delete/reset skipped workout
   final VoidCallback onShowStats; // Logic to view completed stats
-  final VoidCallback onShowInfo; // Logic to show modal with PlanDay details
 
   const TrainingCard({
     super.key,
@@ -23,7 +22,6 @@ class TrainingCard extends StatelessWidget {
     required this.onSkip,
     required this.onUnSkip,
     required this.onShowStats,
-    required this.onShowInfo,
   });
 
   // -- Helper to determine current state --

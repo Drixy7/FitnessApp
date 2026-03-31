@@ -39,6 +39,7 @@ Future<void> main() async {
     await isarService.seedDefaultPlanC();
 
     await prefs.setBool('isFirstLaunch', false);
+    await prefs.setString("firstLaunchDate", DateTime.now().toString());
   }
 
   // ODSTRANĚNO PRO RELEASE:

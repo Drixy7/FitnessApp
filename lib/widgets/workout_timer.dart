@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 
 class WorkoutTimer extends StatefulWidget {
   final int initialSeconds;
+  final bool startPaused;
   final Future<void> Function(int) onSave;
   final void Function(int) onTick;
 
   const WorkoutTimer({
     super.key,
     required this.initialSeconds,
+    this.startPaused = false,
     required this.onSave,
     required this.onTick,
   });
@@ -23,24 +25,28 @@ class _WorkoutTimerState extends State<WorkoutTimer>
     with WidgetsBindingObserver {
   late int _currentSeconds;
   Timer? _timer;
-  DateTime? _pauseTimeAppBackground;
+  DateTime? _lastTickTime;
 
-  bool _isRunning = true;
+  late bool _isRunning;
 
   @override
   void initState() {
     super.initState();
     _currentSeconds = widget.initialSeconds;
+    _isRunning = !widget.startPaused;
     WidgetsBinding.instance.addObserver(this);
-    _startTimer();
+
+    if (_isRunning) {
+      _lastTickTime = DateTime.now();
+      _startTimer();
+    }
   }
 
-  // Přepínání stavu po kliknutí na časovač
   void _toggleTimer() {
     setState(() {
       _isRunning = !_isRunning;
       if (_isRunning) {
-        _pauseTimeAppBackground = null;
+        _lastTickTime = DateTime.now();
         _startTimer();
       } else {
         _stopTimer();
@@ -52,20 +58,10 @@ class _WorkoutTimerState extends State<WorkoutTimer>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.hidden) {
-      if (_isRunning && _pauseTimeAppBackground == null) {
-        _stopTimer();
-        _pauseTimeAppBackground = DateTime.now();
-      }
+        state == AppLifecycleState.inactive) {
       widget.onSave(_currentSeconds);
     } else if (state == AppLifecycleState.resumed) {
-      if (_isRunning && _pauseTimeAppBackground != null) {
-        final resumeDifference = DateTime.now()
-            .difference(_pauseTimeAppBackground!)
-            .inSeconds;
-        _currentSeconds += resumeDifference;
-        _pauseTimeAppBackground = null;
+      if (_isRunning && (_timer == null || !_timer!.isActive)) {
         _startTimer();
       }
     }
@@ -73,15 +69,23 @@ class _WorkoutTimerState extends State<WorkoutTimer>
 
   void _stopTimer() {
     _timer?.cancel();
+    _timer = null;
   }
 
   void _startTimer() {
     if (_timer != null && _timer!.isActive) return;
+    _lastTickTime ??= DateTime.now();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
+      if (!mounted || !_isRunning) return;
+
+      final now = DateTime.now();
+      final elapsed = now.difference(_lastTickTime!).inSeconds;
+
+      if (elapsed > 0) {
         setState(() {
-          _currentSeconds++;
+          _currentSeconds += elapsed;
+          _lastTickTime = _lastTickTime!.add(Duration(seconds: elapsed));
         });
         widget.onTick(_currentSeconds);
       }
@@ -94,17 +98,6 @@ class _WorkoutTimerState extends State<WorkoutTimer>
     _stopTimer();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  String _formatTime(int timeInSeconds) {
-    final d = Duration(seconds: timeInSeconds);
-    String fmt(int n) => n.toString().padLeft(2, '0');
-
-    if (d.inHours > 0) {
-      return "${fmt(d.inHours)}:${fmt(d.inMinutes.remainder(60))}:${fmt(d.inSeconds.remainder(60))}";
-    } else {
-      return "${fmt(d.inMinutes.remainder(60))}:${fmt(d.inSeconds.remainder(60))}";
-    }
   }
 
   @override
@@ -129,7 +122,6 @@ class _WorkoutTimerState extends State<WorkoutTimer>
               ),
             ),
           ),
-
           if (!_isRunning)
             IgnorePointer(
               child: AnimatedOpacity(

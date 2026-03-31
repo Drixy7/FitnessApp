@@ -74,6 +74,7 @@ class WorkoutProvider extends ChangeNotifier {
     Workout pastWorkout,
   ) async {
     final exercises = await _fetchExercisesForWorkout(pastWorkout);
+    await pastWorkout.sets.load();
     final sets = pastWorkout.sets.toList();
     final historicalSets = _populateLoggedSets(sets);
 
@@ -195,9 +196,20 @@ class WorkoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void cancelLoggingSets(PlanDayExercise pde) {
+  Future<void> cancelLoggingSets(PlanDayExercise pde) async {
     if (!isWorkoutActive) throw Exception();
-    loggedSets[pde.orderIndex]!.clear();
+
+    final existingSetsInDb = await _isarService.findWorkoutSetsForExercise(
+      activeWorkout!,
+      pde,
+    );
+
+    if (existingSetsInDb.isNotEmpty) {
+      loggedSets[pde.orderIndex] = existingSetsInDb;
+    } else {
+      loggedSets.remove(pde.orderIndex);
+    }
+    _calculateWorkoutProgress();
     notifyListeners();
   }
 

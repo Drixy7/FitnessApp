@@ -3,6 +3,8 @@ import 'package:fitness_app/providers/plan_provider.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/screens/day_detail_screen.dart';
 import 'package:fitness_app/screens/workout_summary_screen.dart';
+import 'package:fitness_app/utils/datatypes.dart';
+import 'package:fitness_app/widgets/dialogs/warning_dialog.dart';
 import 'package:fitness_app/widgets/status_card.dart';
 import 'package:fitness_app/widgets/training_card.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +58,6 @@ class DashboardScreen extends StatelessWidget {
                           return TrainingCard(
                             day: day,
                             workout: workout,
-                            onShowInfo: () {},
                             onShowStats: () async {
                               if (workout == null) return;
                               final data = await workoutProvider
@@ -82,8 +83,22 @@ class DashboardScreen extends StatelessWidget {
                                 day,
                               );
                             },
-                            onTap: () {
-                              _navigateToDayDetail(day, context);
+                            onTap: () async {
+                              if (workout == null ||
+                                  workout.status != WorkoutStatus.completed) {
+                                _navigateToDayDetail(day, context);
+                                return;
+                              }
+
+                              final result = await showWarningDialog(
+                                "Editing completed workout",
+                                "You're trying to edit a completed workout. Proceed only if you wish to correct mistakes made in previous logging.",
+                                context,
+                              );
+
+                              if (result && context.mounted) {
+                                _navigateToDayDetail(day, context);
+                              }
                             },
                           );
                         },

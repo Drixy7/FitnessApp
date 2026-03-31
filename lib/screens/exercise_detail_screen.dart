@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:fitness_app/models/plan_day_exercise.dart';
 import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/widgets/performance_history.dart';
@@ -204,9 +206,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     final workoutProvider = context.watch<WorkoutProvider>();
     return PopScope(
       canPop: true,
-      onPopInvokedWithResult: (didPop, result) {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop && !_setsLogged) {
-          workoutProvider.cancelLoggingSets(widget.planDayExercise);
+          await workoutProvider.cancelLoggingSets(widget.planDayExercise);
         }
       },
       child: Scaffold(
@@ -219,16 +221,36 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.max,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Text("Set", style: Theme.of(context).textTheme.titleMedium),
-                  Text(
-                    "Weight (kg)",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text("Reps", style: Theme.of(context).textTheme.titleMedium),
-                ],
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    SizedBox(
+                      width: 30,
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        "Set",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        "Weight (kg)",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        "Reps",
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const Divider(),
               Column(
@@ -284,9 +306,13 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
                             children: [
-                              Text(
-                                "${index + 1}",
-                                style: Theme.of(context).textTheme.titleLarge,
+                              SizedBox(
+                                width: 30,
+                                child: Text(
+                                  textAlign: TextAlign.center,
+                                  "${index + 1}",
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
                               ),
                               Expanded(
                                 child: _ValueIncrementer(
@@ -388,7 +414,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 mainAxisSize: MainAxisSize.max,
                 children: [
                   ExpansionTile(
-                    title: Text("Last week performance"),
+                    title: Text("Last workout performance"),
                     children: [
                       PerformanceHistory(
                         loggedSets:
@@ -409,7 +435,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                     ],
                   ),
                   ExpansionTile(
-                    title: Text("Last Cycle performance"),
+                    title: Text("Last cycle performance"),
                     children: [
                       PerformanceHistory(
                         loggedSets:
@@ -440,7 +466,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   }
 }
 
-class _ValueIncrementer extends StatelessWidget {
+class _ValueIncrementer extends StatefulWidget {
   final TextEditingController controller;
   final double incrementValue;
   final bool isDecimal;
@@ -451,59 +477,103 @@ class _ValueIncrementer extends StatelessWidget {
     this.isDecimal = false,
   });
 
+  @override
+  State<_ValueIncrementer> createState() => _ValueIncrementerState();
+}
+
+class _ValueIncrementerState extends State<_ValueIncrementer> {
+  Timer? _timer;
+  bool _isHolding = false;
+
   void _increment() {
-    final currentValue = double.tryParse(controller.text) ?? 0.0;
-    final newValue = currentValue + incrementValue;
-    // Format the string to avoid unnecessary decimals for integers
-    controller.text = isDecimal
+    final currentValue = double.tryParse(widget.controller.text) ?? 0.0;
+    final newValue = currentValue + widget.incrementValue;
+    widget.controller.text = widget.isDecimal
         ? newValue.toStringAsFixed(2)
         : newValue.toInt().toString();
   }
 
   void _decrement() {
-    final currentValue = double.tryParse(controller.text) ?? 0.0;
-    final newValue = currentValue - incrementValue;
+    final currentValue = double.tryParse(widget.controller.text) ?? 0.0;
+    final newValue = currentValue - widget.incrementValue;
     if (newValue >= 0) {
-      // Don't allow negative values
-      controller.text = isDecimal
+      widget.controller.text = widget.isDecimal
           ? newValue.toStringAsFixed(2)
           : newValue.toInt().toString();
     }
   }
 
+  void _startHolding(bool isIncrement) {
+    _isHolding = true;
+
+    isIncrement ? _increment() : _decrement();
+
+    _timer = Timer(const Duration(milliseconds: 350), () {
+      if (_isHolding) {
+        _timer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+          isIncrement ? _increment() : _decrement();
+        });
+      }
+    });
+  }
+
+  void _stopHolding() {
+    _isHolding = false;
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         // --- Minus Button ---
-        IconButton(
-          icon: const Icon(Icons.remove_circle_outline),
-          onPressed: _decrement,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
+        GestureDetector(
+          onTapDown: (_) => _startHolding(false),
+          onTapUp: (_) => _stopHolding(),
+          onTapCancel: () => _stopHolding(),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
+            // U klasického GestureDetectoru potřebujeme trochu paddingu, aby byla oblast pro kliknutí větší
+            child: Icon(Icons.remove_circle_outline, size: 28),
+          ),
         ),
 
         // --- TextField ---
         SizedBox(
-          width: 80,
+          width: 75, // Lehce zúženo
           child: TextField(
-            controller: controller,
-            textAlign: TextAlign.center, // Center the text
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            keyboardType: TextInputType.numberWithOptions(decimal: isDecimal),
-            inputFormatters: isDecimal
+            controller: widget.controller,
+            textAlign: TextAlign.center,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(vertical: 8),
+            ),
+            keyboardType: TextInputType.numberWithOptions(
+              decimal: widget.isDecimal,
+            ),
+            inputFormatters: widget.isDecimal
                 ? [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))]
                 : [FilteringTextInputFormatter.digitsOnly],
           ),
         ),
 
         // --- Plus Button ---
-        IconButton(
-          icon: const Icon(Icons.add_circle_outline),
-          onPressed: _increment,
-          padding: EdgeInsets.zero,
-          constraints: const BoxConstraints(),
+        GestureDetector(
+          onTapDown: (_) => _startHolding(true),
+          onTapUp: (_) => _stopHolding(),
+          onTapCancel: () => _stopHolding(),
+          child: const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Icon(Icons.add_circle_outline, size: 28),
+          ),
         ),
       ],
     );
