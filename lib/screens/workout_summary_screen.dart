@@ -111,6 +111,7 @@ class WorkoutSummaryScreen extends StatelessWidget {
                     },
                   ),
           ),
+          SizedBox(height: 80),
         ],
       ),
     );

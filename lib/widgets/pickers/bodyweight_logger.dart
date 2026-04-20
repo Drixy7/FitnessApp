@@ -113,12 +113,13 @@ class _BodyWeightLoggerState extends State<BodyWeightLogger> {
               IconButton(
                 icon: const Icon(Icons.arrow_forward_ios, size: 20),
                 onPressed:
-                    _selectedDate ==
-                        DateTime(
-                          DateTime.now().year,
-                          DateTime.now().month,
-                          DateTime.now().day,
-                        )
+                    _selectedDate.isAfter(
+                      DateTime(
+                        DateTime.now().year,
+                        DateTime.now().month,
+                        DateTime.now().day,
+                      ),
+                    )
                     ? null
                     : () {
                         setState(() {

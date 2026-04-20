@@ -703,7 +703,7 @@ class IsarService {
     });
 
     debugPrint(
-      '✅ Testovací data (historie na $weeksBack týdnů) byla úspěšně zapsána do databáze!',
+      'Testovací data (historie na $weeksBack týdnů) byla úspěšně zapsána do databáze!',
     );
   }*/
 }

@@ -17,7 +17,6 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
 
   List<WeeklyWeightSegment> get allWeeklySegments => _allWeeklySegments;
   List<WeeklyWeightSegment> get validWeeklySegments => _validWeeklySegments;
-
   WeightSummary get summary => _summary;
 
   BodyWeightStatisticsProvider(this._isarService)
@@ -25,17 +24,20 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       rangeStart = DateTime.now() {
     final now = DateTime.now();
 
-    rangeEnd = DateTime(now.year, now.month, now.day)
-        .add(Duration(days: 8 - now.weekday))
-        .subtract(const Duration(milliseconds: 1));
-
-    final thirtyDaysAgo = DateTime(
+    rangeEnd = DateTime(
       now.year,
       now.month,
-      now.day,
-    ).subtract(const Duration(days: 30));
-    rangeStart = thirtyDaysAgo.subtract(
-      Duration(days: thirtyDaysAgo.weekday - 1),
+      now.day + (7 - now.weekday),
+      23,
+      59,
+      59,
+    );
+
+    final thirtyDaysAgo = DateTime(now.year, now.month, now.day - 30);
+    rangeStart = DateTime(
+      thirtyDaysAgo.year,
+      thirtyDaysAgo.month,
+      thirtyDaysAgo.day - (thirtyDaysAgo.weekday - 1),
     );
   }
 
@@ -56,18 +58,23 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
     rangeStart = DateTime(
       start.year,
       start.month,
-      start.day,
-    ).subtract(Duration(days: start.weekday - 1));
-    rangeEnd = DateTime(end.year, end.month, end.day)
-        .add(Duration(days: 8 - end.weekday))
-        .subtract(const Duration(milliseconds: 1));
+      start.day - (start.weekday - 1),
+    );
+    rangeEnd = DateTime(
+      end.year,
+      end.month,
+      end.day + (7 - end.weekday),
+      23,
+      59,
+      59,
+    );
     await loadBodyWeightStats();
   }
 
   void _calculateWeeklySegments(
     List<WeightLog> logs,
-    DateTime rangeStart,
-    DateTime rangeEnd,
+    DateTime startRef,
+    DateTime endRef,
   ) {
     List<WeeklyWeightSegment> allSegments = [];
     List<WeeklyWeightSegment> validSegments = [];
@@ -78,21 +85,30 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       logsByWeek.putIfAbsent(key, () => []).add(log);
     }
 
-    while (rangeStart.isBefore(rangeEnd)) {
-      final int weekNum = rangeStart.weekOfYear;
-      final int year = rangeStart.year;
+    DateTime currentStart = startRef;
+
+    while (currentStart.isBefore(endRef)) {
+      final int weekNum = currentStart.weekOfYear;
+      final int year = currentStart.year;
       final int weekKey = (year * 100) + weekNum;
 
       final List<WeightLog> weekLogs = logsByWeek[weekKey] ?? [];
+
+      DateTime currentEnd = DateTime(
+        currentStart.year,
+        currentStart.month,
+        currentStart.day + 6,
+        23,
+        59,
+        59,
+      );
 
       if (weekLogs.isEmpty) {
         allSegments.add(
           WeeklyWeightSegment(
             weekNumber: weekKey,
-            startDate: rangeStart,
-            endDate: rangeStart.add(
-              const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
-            ),
+            startDate: currentStart,
+            endDate: currentEnd,
             averageWeight: 0,
             minWeight: 0,
             maxWeight: 0,
@@ -112,10 +128,8 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
 
         final segment = WeeklyWeightSegment(
           weekNumber: weekKey,
-          startDate: rangeStart,
-          endDate: rangeStart.add(
-            const Duration(days: 6, hours: 23, minutes: 59, seconds: 59),
-          ),
+          startDate: currentStart,
+          endDate: currentEnd,
           averageWeight: sum / weekLogs.length,
           minWeight: min,
           maxWeight: max,
@@ -126,7 +140,11 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
         validSegments.add(segment);
       }
 
-      rangeStart = rangeStart.add(const Duration(days: 7));
+      currentStart = DateTime(
+        currentStart.year,
+        currentStart.month,
+        currentStart.day + 7,
+      );
     }
     _allWeeklySegments = allSegments;
     _validWeeklySegments = validSegments;
@@ -153,18 +171,20 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
         .map((e) => e.maxWeight)
         .reduce((a, b) => a > b ? a : b);
 
-    double avgChange = 0;
-    int n = segments.length;
+    double weeklyChange = 0;
+    int n = allLogs.length;
 
     if (n >= 2) {
+      final startDate = allLogs.first.date;
+
       double sumX = 0;
       double sumY = 0;
       double sumXY = 0;
       double sumXX = 0;
 
-      for (int i = 0; i < n; i++) {
-        double x = i.toDouble();
-        double y = segments[i].averageWeight;
+      for (var log in allLogs) {
+        double x = log.date.difference(startDate).inDays.toDouble();
+        double y = log.weight;
 
         sumX += x;
         sumY += y;
@@ -175,14 +195,15 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       double denominator = (n * sumXX) - (sumX * sumX);
 
       if (denominator != 0) {
-        avgChange = ((n * sumXY) - (sumX * sumY)) / denominator;
+        double dailyChange = ((n * sumXY) - (sumX * sumY)) / denominator;
+        weeklyChange = dailyChange * 7;
       }
     }
 
     return WeightSummary(
       lowestInRange: globalMin,
       highestInRange: globalMax,
-      averageWeeklyChange: avgChange,
+      averageWeeklyChange: weeklyChange,
       startWeight: allLogs.first.weight,
       currentWeight: allLogs.last.weight,
     );
@@ -208,6 +229,9 @@ class BodyWeightStatisticsProvider extends ChangeNotifier {
       segment.dailyLogs.add(updatedLog);
     }
     segment.recalculateInternalStats();
+
+    await _isarService.saveWeightLog(updatedLog);
+
     final logs = await _isarService.findWeightLogsForDateRange(
       rangeStart,
       rangeEnd,

@@ -67,6 +67,7 @@ class _BodyWeightStatisticsScreenState
         context: context,
         firstDate: _firstLaunchDate,
         lastDate: lastAvailableDate,
+        locale: const Locale('en', 'GB'),
       );
 
       if (pickedRange != null) {
@@ -429,7 +430,6 @@ class _BodyWeightStatisticsScreenState
                     }
                     final result = await _showWeightLogger(weightLog);
                     if (result != null && context.mounted) {
-                      debugPrint("something");
                       await statisticsProvider.updateSingleLog(result);
                     }
                   },

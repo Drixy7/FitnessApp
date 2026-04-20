@@ -10,6 +10,7 @@ import 'package:fitness_app/providers/workout_provider.dart';
 import 'package:fitness_app/screens/main_scaffold.dart';
 import 'package:fitness_app/utils/theme/app_theme.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:path_provider_android/path_provider_android.dart';
 import 'package:path_provider_linux/path_provider_linux.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
@@ -90,6 +91,12 @@ class MainApp extends StatelessWidget {
       themeMode: themeProvider.themeMode,
       home: const MainScaffold(),
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('en', 'US'), Locale('en', 'GB')],
     );
   }
 }
